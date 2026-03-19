@@ -1,36 +1,173 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 整理券管理システム 
 
-## Getting Started
+> **開発中** — イベント用リアルタイム順番待ち・整理券発券システム
 
-First, run the development server:
+PCブラウザから操作できるWebアプリです。タブレット専用ではなく、**レンタルPCを含む一般的なパソコンで動作します**。
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## システムの全体像
+
+「事前印刷されたQRコード付き整理券の紙」を活用したハイブリッド方式です。  
+各ブースの行列をなくし、少人数のスタッフで効率的に来場者をさばきつつ、正確な来場者数データを収集できます。
+
+**呼び出しは時間枠ではなく、受付した順番で行います**（飲食店・銀行の窓口方式）。
+
+---
+
+## 受付方式について
+
+現在、以下の2方式を検討中です。どちらも実装可能です。
+
+| 方式 | 概要 | メリット | 注意点 |
+|------|------|---------|--------|
+| **一括受付**（入り口で一元管理） | 入り口の受付でブースを選択して整理券を受け取る | 来場者の動線がシンプル | 受付スタッフへの負荷が集中 |
+| **ブース別受付**（各ブースで個別管理） | 各ブースに行って直接整理券を受け取る | 実装がシンプル・教室が別々の場合に適している | ブースの数だけ受付用PCが必要 |
+
+---
+
+## 当日の運用フロー
+
+### A. 受付（ブース別受付の場合）
+
+1. **来場者がブースへ直接行く**
+   - スタッフがPCで整理券を発行する
+   - 整理券（QRコード付きの紙）を手渡す
+
+2. **システムによる自動分岐**
+
+   **【ブースが空いていて、順番待ちがない場合】**
+   - 「そのままお進みください」と案内
+   - スタッフは整理券を渡さず、そのままブースへ案内する
+   - ※ システム側では「何時何分に何名案内した」というデータが自動記録される
+
+   **【ブースが混雑していて、順番待ちが生じている場合】**
+   - 整理券（QRコード付きの紙）を来場者に手渡す
+   - QRコードのURLに「ブース名」と「人数」などの情報が紐付けられる
+
+### B. 各ブースのスタッフ
+
+各ブースの担当者が、**レンタルPCで管理者画面を開いて運用します**。
+
+1. **「次の方を呼ぶ」操作**（ワンタップ）
+   - 目の前の来場者の体験が終われば、管理者画面の「次の方をどうぞ」ボタンを押す
+   - システムが自動で「前の来場者を完了（Done）」にし、「次の来場者を呼び出し中（called）」に切り替える
+   - ⚠️ 待ち列が0でも、この操作は必要
+
+2. **整理券モードと直行モードの切り替え**
+   - ブーススタッフが手動でモードを切り替える
+
+### C. 来場者
+
+1. **整理券のQRコードをスマホで読み込む**
+   - 画面にて「ブース名」「待ち列の番号」「前に何組待っているか」がリアルタイムで表示（リロード不要）
+
+2. **順番が来たら**
+   - QRコード内で通知 & 受付モニターで表示
+
+---
+
+## 事前準備
+
+### 1. 整理券の事前印刷
+
+管理画面から各ブース用にQRコード付き整理券（例：1番〜200番）を一括生成してA4のPDFで出力できます。これを事前に印刷します。
+
+### 2. 受付セットの配置（一括受付方式の場合）
+
+入り口の「受付」に以下を配置します：
+- 来場者操作用のPC
+- 案内表示用のモニター
+- 各ブースの整理券の束（順番通りに並べたもの）
+
+---
+
+## 技術スタック
+
+| カテゴリ | 技術 |
+|---------|------|
+| フロントエンド | Next.js (App Router) / TypeScript |
+| UI | Material UI (MUI) |
+| バックエンド | Supabase (PostgreSQL) |
+| リアルタイム通信 | Supabase Realtime（予定） |
+
+---
+
+## 管理画面メニュー構成
+
+```
+管理者サイドバー
+│
+├── 運営当日
+│   ├── ブース管理        # 各ブースのステータス・呼び出し操作
+│   ├── 受付操作          # 整理券発行（ブース別受付時のスタッフ用）
+│   └── 呼び出しモニター  # 大型モニター向け全画面表示
+│
+├── 事前準備
+│   ├── 整理券 PDF生成    # QRコード付き整理券の一括印刷
+│   ├── ブース設定        # ブース名・定員・初期化
+│   └── イベント初期化    # 全チケットのリセット
+│
+└── 集計・分析
+    ├── 来場者数ダッシュボード  # ブース別・時間帯別の集計
+    └── CSVエクスポート         # 記録データの出力
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## データベース構造
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### `booths` テーブル
 
-## Learn More
+| カラム | 型 | 説明 |
+|--------|-----|------|
+| id | uuid | ブースID |
+| name | text | ブース名 |
+| status | text | `empty`（直行モード） / `crowded`（整理券モード） |
+| capacity | int4 | 定員 |
+| created_at | timestamptz | 作成日時 |
 
-To learn more about Next.js, take a look at the following resources:
+### `tickets` テーブル
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| カラム | 型 | 説明 |
+|--------|-----|------|
+| id | uuid | チケットID |
+| booth_id | uuid | 対象ブースID |
+| ticket_number | int | 整理券番号 |
+| party_size | int | 人数 |
+| status | text | `waiting` / `called` / `done` / `direct` |
+| created_at | timestamptz | 受付日時 |
+| updated_at | timestamptz | 最終更新日時 |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## ローカル開発
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+# 依存パッケージのインストール
+npm install
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# 環境変数の設定
+cp .env.example .env.local
+# NEXT_PUBLIC_SUPABASE_URL と NEXT_PUBLIC_SUPABASE_ANON_KEY を設定
+
+# 開発サーバー起動
+npm run dev
+```
+
+> **Supabase の RLS 設定について**  
+> テーブル作成後、Row Level Security のポリシーを設定するか無効化しないとデータが取得できません。詳細は [Supabase ダッシュボード](https://supabase.com) で確認してください。
+
+---
+
+## 開発状況
+
+- [x] ブース管理ダッシュボード（ステータス切り替え・呼び出し操作）
+- [x] サイドバーナビゲーション
+- [ ] 受付操作画面（整理券発行）
+- [ ] 来場者向け待ち状況確認画面（QRコードリンク先）
+- [ ] 呼び出しモニター画面
+- [ ] 整理券 PDF 一括生成
+- [ ] 来場者数ダッシュボード
+- [ ] CSVエクスポート
+- [ ] イベント初期化機能
