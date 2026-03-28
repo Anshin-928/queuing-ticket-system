@@ -1,3 +1,5 @@
+// src/types/database.ts
+
 export type BoothStatus = 'empty' | 'crowded'
 
 export type TicketStatus = 'unissued' | 'waiting' | 'called' | 'done' | 'direct'

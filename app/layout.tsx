@@ -1,3 +1,4 @@
+// app/layout.tsx
 import type { Metadata } from 'next'
 import ThemeRegistry from './components/ThemeRegistry'
 

@@ -1,3 +1,4 @@
+// app/admin/booths/BoothCard.tsx
 'use client'
 
 import { useState, useTransition } from 'react'
