@@ -3,82 +3,139 @@
 
 import React from 'react'
 import {
-  Drawer, Toolbar, List, ListItem, ListItemButton, ListItemIcon, ListItemText,
-  Divider, Typography, useMediaQuery, useTheme, alpha, Box, Chip,
+  Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText,
+  Divider, Typography, Box, IconButton,
 } from '@mui/material'
-import { useRouter, usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import StorefrontOutlinedIcon   from '@mui/icons-material/StorefrontOutlined'
+import MenuRoundedIcon from '@mui/icons-material/MenuRounded'
 import ArrowBackOutlinedIcon from '@mui/icons-material/ArrowBackOutlined'
 import { menuGroups, getBoothPath } from '@/config/adminMenu'
 
 export const closedDrawerWidth = 0
-export const openDrawerWidth   = 280
+export const openDrawerWidth   = 300
+
+// ── カラーパレット ─────────────────────────────────────
+const SIDEBAR_BG         = '#274a79'
+const SIDEBAR_HEADER_BG  = '#3363a3'
+const SIDEBAR_TEXT       = 'rgba(255, 255, 255, 0.90)'
+const SIDEBAR_TEXT_MUTED = 'rgba(255, 255, 255, 0.70)'
+const SIDEBAR_ACTIVE_BG  = '#3b72bb'
+const SIDEBAR_HOVER_BG   = 'rgba(255, 255, 255, 0.08)'
 
 interface SidebarProps {
   isSidebarOpen: boolean
   boothId: string
   boothName: string
+  onToggle: () => void
 }
 
-export default function Sidebar({ isSidebarOpen, boothId, boothName }: SidebarProps) {
-  const router   = useRouter()
+export default function Sidebar({ isSidebarOpen, boothId, boothName, onToggle }: SidebarProps) {
   const pathname = usePathname()
-  const theme    = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
-
-  if (isMobile) return null
-
-  const selectedBg = theme.palette.mode === 'dark'
-    ? alpha(theme.palette.primary.main, 0.18)
-    : '#D3E3FD'
+  const router   = useRouter()
 
   return (
     <Drawer
       variant="permanent"
       anchor="left"
-      open={isSidebarOpen}
       sx={{
-        width: isSidebarOpen ? openDrawerWidth : 0,
+        width: isSidebarOpen ? openDrawerWidth : closedDrawerWidth,
         flexShrink: 0,
         whiteSpace: 'nowrap',
         boxSizing: 'border-box',
         transition: 'width 0.2s',
         overflow: 'hidden',
         '& .MuiDrawer-paper': {
-          width: isSidebarOpen ? openDrawerWidth : 0,
+          width: isSidebarOpen ? openDrawerWidth : closedDrawerWidth,
           transition: 'width 0.2s',
           overflowX: 'hidden',
-          backgroundColor: theme.palette.background.default,
+          overflowY: 'hidden',
+          backgroundColor: SIDEBAR_BG,
           borderRight: 'none',
-          color: theme.palette.text.primary,
+          color: SIDEBAR_TEXT,
+          display: 'flex',
+          flexDirection: 'column',
         },
       }}
     >
-      <Toolbar />
+      {/* ── ヘッダー（イベント名 ＋ ブース名） ───────── */}
+      <Box
+        sx={{
+          backgroundColor: SIDEBAR_HEADER_BG,
+          px: 3,
+          pt: 2,
+          pb: 2.5,
+          flexShrink: 0,
+          position: 'relative',
+        }}
+      >
+        {/* 閉じるボタン（右上） */}
+        <IconButton
+          onClick={onToggle}
+          size="small"
+          sx={{
+            position: 'absolute',
+            top: 14,
+            right: 14,
+            color: SIDEBAR_TEXT_MUTED,
+            '&:hover': { backgroundColor: 'rgba(255,255,255,0.12)', color: SIDEBAR_TEXT },
+          }}
+        >
+          <MenuRoundedIcon sx={{ fontSize: '24px' }} />
+        </IconButton>
 
-      {isSidebarOpen && (
-        <Box sx={{ px: 3, pt: 1, pb: 1 }}>
-          <Chip label={boothName} color="primary" size="small" sx={{ fontWeight: 'bold', fontSize: '13px' }} />
-        </Box>
-      )}
+        <Typography
+          variant="caption"
+          sx={{ color: SIDEBAR_TEXT_MUTED, fontSize: '16px', fontWeight: 600, display: 'block', mb: 1.5, pr: 4 }}
+        >
+          いばらき ✕ 立命館DAY 2026
+        </Typography>
 
-      <List sx={{ px: 0, pt: 0.5 }}>
+        <Typography
+          variant="h6"
+          fontWeight="bold"
+          sx={{ color: SIDEBAR_TEXT, fontSize: '24px', lineHeight: 1.2, letterSpacing: '-0.2px' }}
+        >
+          {boothName}
+        </Typography>
+      </Box>
+
+      {/* ── メニューリスト ────────────────────────────── */}
+      <List
+        sx={{
+          px: 0,
+          pt: 1.5,
+          pb: 1,
+          flexGrow: 1,
+          overflowY: 'auto',
+          scrollbarWidth: 'thin',
+          scrollbarColor: 'transparent transparent',
+          '&:hover': {
+            scrollbarColor: 'rgba(255,255,255,0.2) transparent',
+          },
+        }}
+      >
         {menuGroups.map((group, groupIndex) => (
           <React.Fragment key={group.label}>
             {groupIndex > 0 && (
-              <Divider sx={{ my: 1, mx: isSidebarOpen ? 2 : 1, borderColor: theme.palette.divider }} />
+              <Divider sx={{ my: 1, mx: 3, borderColor: 'rgba(255,255,255,0.12)' }} />
             )}
 
-            {isSidebarOpen && (
-              <Box sx={{ px: '24px', pt: 0.5, pb: 0.5 }}>
-                <Typography
-                  variant="caption"
-                  sx={{ color: theme.palette.text.disabled, fontWeight: 'bold', letterSpacing: '0.08em', fontSize: '14px' }}
-                >
-                  {group.label.toUpperCase()}
-                </Typography>
-              </Box>
-            )}
+            <Box sx={{ px: 3, pt: groupIndex > 0 ? 0.5 : 0, pb: 0.5 }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: SIDEBAR_TEXT_MUTED,
+                  fontWeight: 700,
+                  letterSpacing: '0.10em',
+                  fontSize: '12px',
+                  textTransform: 'uppercase',
+                }}
+              >
+                {group.label}
+              </Typography>
+            </Box>
 
             {group.items.map((item) => {
               const path = getBoothPath(boothId, item.pathSegment)
@@ -91,75 +148,76 @@ export default function Sidebar({ isSidebarOpen, boothId, boothName }: SidebarPr
                     selected={isSelected}
                     sx={{
                       minHeight: 44,
-                      ml: isSidebarOpen ? 0 : 1,
-                      mr: isSidebarOpen ? 2 : 1,
+                      ml: 0,
+                      mr: 2,
                       px: 0,
-                      borderRadius: isSidebarOpen ? '0 24px 24px 0' : '24px',
+                      borderRadius: '0 22px 22px 0',
+                      color: isSelected ? '#fff' : SIDEBAR_TEXT,
+                      '&:hover': {
+                        backgroundColor: isSelected ? SIDEBAR_ACTIVE_BG : SIDEBAR_HOVER_BG,
+                      },
                       '&.Mui-selected': {
-                        backgroundColor: selectedBg,
-                        '&:hover': { backgroundColor: selectedBg },
+                        backgroundColor: SIDEBAR_ACTIVE_BG,
+                        '&:hover': { backgroundColor: SIDEBAR_ACTIVE_BG },
                       },
                     }}
                   >
                     <ListItemIcon
                       sx={{
                         minWidth: 0,
-                        ml: isSidebarOpen ? '24px' : '16px',
-                        mr: '16px',
+                        ml: '20px',
+                        mr: '14px',
                         justifyContent: 'center',
-                        color: isSelected ? theme.palette.primary.main : theme.palette.text.secondary,
+                        color: isSelected ? '#fff' : SIDEBAR_TEXT_MUTED,
                       }}
                     >
-                      <item.Icon />
+                      <item.Icon sx={{ fontSize: '24px' }} />
                     </ListItemIcon>
-
-                    {isSidebarOpen && (
-                      <ListItemText
-                        primary={item.text}
-                        sx={{
-                          '& .MuiTypography-root': {
-                            fontSize: '16px',
-                            fontWeight: isSelected ? 'bold' : 'normal',
-                            color: isSelected ? theme.palette.text.primary : theme.palette.text.secondary,
-                          },
-                        }}
-                      />
-                    )}
+                    <ListItemText
+                      primary={item.text}
+                      sx={{
+                        '& .MuiTypography-root': {
+                          fontSize: '15px',
+                          fontWeight: isSelected ? 700 : 400,
+                          color: isSelected ? '#fff' : SIDEBAR_TEXT,
+                        },
+                      }}
+                    />
                   </ListItemButton>
                 </ListItem>
               )
             })}
           </React.Fragment>
         ))}
+      </List>
 
-        {/* ブース選択に戻る */}
-        <Divider sx={{ my: 1, mx: isSidebarOpen ? 2 : 1 }} />
+      {/* ── フッター：ブース選択に戻る ──────────────── */}
+      <Box sx={{ flexShrink: 0, pb: 2 }}>
+        <Divider sx={{ mx: 3, mb: 1, borderColor: 'rgba(255,255,255,0.12)' }} />
         <ListItem disablePadding>
           <ListItemButton
             component={Link}
             href="/admin"
             sx={{
               minHeight: 44,
-              ml: isSidebarOpen ? 0 : 1,
-              mr: isSidebarOpen ? 2 : 1,
+              ml: 0,
+              mr: 2,
               px: 0,
-              borderRadius: isSidebarOpen ? '0 24px 24px 0' : '24px',
+              borderRadius: '0 22px 22px 0',
+              color: SIDEBAR_TEXT_MUTED,
+              '&:hover': { backgroundColor: SIDEBAR_HOVER_BG, color: SIDEBAR_TEXT },
             }}
           >
-            <ListItemIcon
-              sx={{ minWidth: 0, ml: isSidebarOpen ? '24px' : '16px', mr: '16px', justifyContent: 'center', color: theme.palette.text.secondary }}
-            >
-              <ArrowBackOutlinedIcon />
+            <ListItemIcon sx={{ minWidth: 0, ml: '20px', mr: '14px', justifyContent: 'center', color: 'inherit' }}>
+              <ArrowBackOutlinedIcon sx={{ fontSize: '20px' }} />
             </ListItemIcon>
-            {isSidebarOpen && (
-              <ListItemText
-                primary="ブース選択に戻る"
-                sx={{ '& .MuiTypography-root': { fontSize: '16px', color: theme.palette.text.secondary } }}
-              />
-            )}
+            <ListItemText
+              primary="ブース選択に戻る"
+              sx={{ '& .MuiTypography-root': { fontSize: '14px', color: 'inherit' } }}
+            />
           </ListItemButton>
         </ListItem>
-      </List>
+      </Box>
     </Drawer>
   )
 }

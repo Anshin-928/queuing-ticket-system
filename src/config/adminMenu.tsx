@@ -1,8 +1,8 @@
 // src/config/adminMenu.tsx
 
-import StorefrontOutlinedIcon   from '@mui/icons-material/StorefrontOutlined'
+import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import TvOutlinedIcon           from '@mui/icons-material/TvOutlined'
-import QrCodeOutlinedIcon       from '@mui/icons-material/QrCodeOutlined'
+import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import SettingsOutlinedIcon     from '@mui/icons-material/SettingsOutlined'
 import RestartAltOutlinedIcon   from '@mui/icons-material/RestartAltOutlined'
 import type { SvgIconComponent } from '@mui/icons-material'
@@ -23,16 +23,16 @@ export const menuGroups: MenuGroupConfig[] = [
   {
     label: '運営当日',
     items: [
-      { key: 'dashboard', text: '管理画面',         pathSegment: null,       Icon: StorefrontOutlinedIcon },
-      { key: 'monitor',   text: '呼び出し画面', pathSegment: 'monitor',  Icon: TvOutlinedIcon },
+      { key: 'dashboard', text: '管理画面TOP', pathSegment: 'dashboard', Icon: DashboardOutlinedIcon },
+      { key: 'monitor', text: '呼び出し画面', pathSegment: 'monitor', Icon: TvOutlinedIcon },
     ],
   },
   {
     label: '事前準備',
     items: [
-      { key: 'tickets',   text: '整理券 PDF生成', pathSegment: 'tickets',  Icon: QrCodeOutlinedIcon },
-      { key: 'settings',  text: 'ブース設定',     pathSegment: 'settings', Icon: SettingsOutlinedIcon },
-      { key: 'reset',     text: 'イベント初期化', pathSegment: 'reset',    Icon: RestartAltOutlinedIcon },
+      { key: 'tickets', text: '整理券PDF生成', pathSegment: 'tickets', Icon: ConfirmationNumberOutlinedIcon },
+      { key: 'settings', text: '設定', pathSegment: 'settings', Icon: SettingsOutlinedIcon },
+      { key: 'reset', text: 'イベント初期化', pathSegment: 'reset', Icon: RestartAltOutlinedIcon },
     ],
   },
 ]

@@ -2,10 +2,11 @@
 'use client'
 
 import { useState } from 'react'
-import { Box, AppBar, Toolbar, IconButton, Typography, useTheme } from '@mui/material'
+import { usePathname } from 'next/navigation'
+import { Box, AppBar, Toolbar, IconButton, Typography, Divider } from '@mui/material'
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded'
-import Sidebar, { closedDrawerWidth, openDrawerWidth } from '@/components/Sidebar'
-import PageHeader from '@/components/PageHeader'
+import Sidebar, { openDrawerWidth } from '@/components/Sidebar'
+import { allMenuItems, getBoothPath } from '@/config/adminMenu'
 
 interface BoothAdminLayoutProps {
   children: React.ReactNode
@@ -15,59 +16,88 @@ interface BoothAdminLayoutProps {
 
 export default function BoothAdminLayout({ children, boothId, boothName }: BoothAdminLayoutProps) {
   const [isSidebarOpen, setSidebarOpen] = useState(true)
-  const theme = useTheme()
+  const pathname = usePathname()
+
+  const currentItem = allMenuItems.find((item) => {
+    const path = getBoothPath(boothId, item.pathSegment)
+    return pathname === path
+  })
+
+  const drawerWidth = isSidebarOpen ? openDrawerWidth : 0
 
   return (
-    <Box sx={{ display: 'flex', height: '100vh', backgroundColor: theme.palette.background.default }}>
+    <Box sx={{ display: 'flex', height: '100vh', backgroundColor: '#ffffff' }}>
 
+      {/* ── AppBar ─────────────────────────────────── */}
       <AppBar
         position="fixed"
         elevation={0}
         sx={{
-          backgroundColor: theme.palette.background.default,
-          color: theme.palette.text.primary,
+          width: `calc(100% - ${drawerWidth}px)`,
+          ml: `${drawerWidth}px`,
+          transition: 'width 0.2s, margin 0.2s',
+          backgroundColor: '#F0EEEB',
+          color: '#1a1a1a',
           borderBottom: 'none',
-          zIndex: (t) => t.zIndex.drawer + 1,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
         }}
       >
-        <Toolbar sx={{ px: 2, minHeight: '64px !important' }}>
-          <IconButton
-            onClick={() => setSidebarOpen((prev) => !prev)}
-            edge="start"
-            sx={{ ml: '-8px', mr: 2, color: theme.palette.text.primary }}
-          >
-            <MenuRoundedIcon />
-          </IconButton>
-          <Typography variant="h6" fontWeight="bold" sx={{ fontSize: '20px', letterSpacing: '-0.3px' }}>
-          いばらき ✕ 立命館DAY 2026
-          </Typography>
+        <Toolbar disableGutters sx={{ minHeight: '60px !important' }}>
+
+          {/* ハンバーガー（サイドバーが閉じているときのみ表示） */}
+          {!isSidebarOpen && (
+            <>
+              {/* 左右均等な余白でアイコンを囲む */}
+              <Box sx={{ display: 'flex', alignItems: 'center', px: 1.5 }}>
+                <IconButton
+                  onClick={() => setSidebarOpen((prev) => !prev)}
+                  size="small"
+                  sx={{ color: '#555' }}
+                >
+                  <MenuRoundedIcon />
+                </IconButton>
+              </Box>
+              <Divider orientation="vertical" flexItem sx={{ borderColor: 'rgba(0,0,0,0.12)' }} />
+            </>
+          )}
+
+          {/* 現在ページ：アイコン ＋ タイトル */}
+          <Box display="flex" alignItems="center" gap={1} sx={{ px: 2.5 }}>
+            {currentItem && (
+              <>
+                <currentItem.Icon sx={{ fontSize: '32px', color: '#1E3A5F' }} />
+                <Typography variant="subtitle1" fontWeight="bold" sx={{ fontSize: '22px', color: '#1a1a1a', letterSpacing: '-0.2px' }}>
+                  {currentItem.text}
+                </Typography>
+              </>
+            )}
+          </Box>
+
         </Toolbar>
       </AppBar>
 
-      <Sidebar isSidebarOpen={isSidebarOpen} boothId={boothId} boothName={boothName} />
+      {/* ── サイドバー ─────────────────────────────── */}
+      <Sidebar isSidebarOpen={isSidebarOpen} boothId={boothId} boothName={boothName} onToggle={() => setSidebarOpen((p) => !p)} />
 
+      {/* ── メインコンテンツ ──────────────────────── */}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
           display: 'flex',
           flexDirection: 'column',
-          pb: 2,
-          pr: 2,
-          pl: isSidebarOpen ? 0 : 2,
-          transition: 'margin-left 0.2s, padding-left 0.2s',
           minWidth: 0,
           minHeight: 0,
           overflow: 'hidden',
         }}
       >
-        <Toolbar sx={{ minHeight: '64px !important' }} />
+        {/* AppBar の高さ分のスペーサー */}
+        <Toolbar sx={{ minHeight: '60px !important', flexShrink: 0 }} />
+
+        {/* コンテンツ */}
         <Box
           sx={{
-            backgroundColor: theme.palette.background.paper,
             flexGrow: 1,
-            borderRadius: '24px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
             overflowX: 'hidden',
             overflowY: 'auto',
             p: 4,
@@ -75,10 +105,7 @@ export default function BoothAdminLayout({ children, boothId, boothName }: Booth
             flexDirection: 'column',
           }}
         >
-          <Box sx={{ maxWidth: '1100px', width: '100%', mx: 'auto', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-            <PageHeader boothId={boothId} />
-            {children}
-          </Box>
+          {children}
         </Box>
       </Box>
     </Box>
