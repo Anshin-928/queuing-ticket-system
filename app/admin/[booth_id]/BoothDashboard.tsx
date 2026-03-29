@@ -3,14 +3,8 @@
 
 import { useState, useTransition } from 'react'
 import Box from '@mui/material/Box'
-import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
 import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
-import Divider from '@mui/material/Divider'
-import Tabs from '@mui/material/Tabs'
-import Tab from '@mui/material/Tab'
-import Chip from '@mui/material/Chip'
 import IconButton from '@mui/material/IconButton'
 import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
@@ -19,16 +13,21 @@ import AddIcon from '@mui/icons-material/Add'
 import RemoveIcon from '@mui/icons-material/Remove'
 import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk'
 import CheckIcon from '@mui/icons-material/Check'
-import UndoIcon from '@mui/icons-material/Undo'
-import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber'
 import type { Booth, Ticket } from '@/types/database'
 import {
-  callNextTicket,
   callSpecificTicket,
   completeTicket,
   returnToWaiting,
 } from './actions'
 import { issueTicket } from './checkin/actions'
+
+// デザイン
+const BLUE            = '#3b72bb'
+const GREEN_BTN       = '#45a149'
+const GREEN_BTN_HOVER = '#39863d'
+const TAB_ACTIVE_BG   = '#3b72bb'
+const TAB_INACTIVE_BG = '#e0e0e0'
+const ROW_CALLED_BG   = '#fff3f3'
 
 interface BoothDashboardProps {
   booth: Booth
@@ -42,9 +41,9 @@ export default function BoothDashboard({ booth, tickets }: BoothDashboardProps) 
   const [snackbar, setSnackbar] = useState<{ message: string; severity: 'success' | 'error' } | null>(null)
   const [issuePending, startIssueTransition] = useTransition()
 
-  const calledTickets = tickets.filter((t) => t.status === 'called')
+  const calledTickets  = tickets.filter((t) => t.status === 'called')
   const waitingTickets = tickets.filter((t) => t.status === 'waiting')
-  const totalPeople = [...calledTickets, ...waitingTickets].reduce((s, t) => s + (t.party_size ?? 0), 0)
+  const totalPeople    = [...calledTickets, ...waitingTickets].reduce((s, t) => s + (t.party_size ?? 0), 0)
 
   const handleIssue = () => {
     startIssueTransition(async () => {
@@ -59,84 +58,119 @@ export default function BoothDashboard({ booth, tickets }: BoothDashboardProps) 
   }
 
   return (
-    <Box sx={{ display: 'flex', gap: 2, flexGrow: 1, minHeight: 0 }}>
-
+    <Box sx={{ display: 'flex', flexGrow: 1, minHeight: 0, overflow: 'hidden' }}>
       {/* ── 左パネル ─────────────────────────────── */}
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, minHeight: 0 }}>
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, p: 2, gap: 2 }}>
 
-        {/* 上段：待ち組数 ＋ 発券トグル */}
-        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+        {/* 上段：待ち組数 ＋ 発券モードトグル */}
+        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, alignItems: 'start' }}>
 
           {/* 待ち組数 */}
-          <Card elevation={2}>
-            <CardContent>
-              <Typography variant="caption" color="text.secondary" fontWeight="bold">
-                現在の待ち組数
+          <Box>
+            <Typography sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.85rem', mb: 0.25 }}>
+              現在の待ち組数
+            </Typography>
+            <Box display="flex" alignItems="baseline" gap={1}>
+              <Typography sx={{ fontSize: '3rem', fontWeight: 'bold', color: '#111', lineHeight: 1 }}>
+                {waitingTickets.length + calledTickets.length}
               </Typography>
-              <Box display="flex" alignItems="baseline" gap={1} mt={0.5}>
-                <Typography variant="h2" fontWeight="bold" lineHeight={1}>
-                  {waitingTickets.length + calledTickets.length}
-                </Typography>
-                <Typography variant="h5" color="text.secondary">
-                  （{totalPeople}人）
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
+              <Typography sx={{ fontSize: '1.2rem', color: 'text.secondary' }}>
+                （{totalPeople}人）
+              </Typography>
+            </Box>
+          </Box>
 
           {/* 発券モードトグル */}
-          <Card elevation={2}>
-            <CardContent>
-              <Typography variant="caption" color="text.secondary" fontWeight="bold">
-                本日の発券
-              </Typography>
-              <Box display="flex" gap={1} mt={1}>
-                <Button
-                  variant={!issueSuspended ? 'contained' : 'outlined'}
-                  color="primary"
-                  size="small"
-                  onClick={() => setIssueSuspended(false)}
-                  sx={{ flex: 1 }}
-                >
-                  発券する
-                </Button>
-                <Button
-                  variant={issueSuspended ? 'contained' : 'outlined'}
-                  color="error"
-                  size="small"
-                  onClick={() => setIssueSuspended(true)}
-                  sx={{ flex: 1 }}
-                >
-                  中止する
-                </Button>
-              </Box>
-            </CardContent>
-          </Card>
+          <Box sx={{ justifySelf: 'flex-end', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <Typography sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.85rem', mb: 1 }}>
+              本日の発券
+            </Typography>
+            <Box display="flex" gap={2.5}>
+              {[
+                { label: '発券する', suspended: false },
+                { label: '停止する', suspended: true },
+              ].map((opt) => {
+                const active = issueSuspended === opt.suspended
+                return (
+                  <Box
+                    key={opt.label}
+                    onClick={() => setIssueSuspended(opt.suspended)}
+                    sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5, cursor: 'pointer', userSelect: 'none' }}
+                  >
+                    <Box
+                      sx={{
+                        width: 22, height: 22, borderRadius: '50%',
+                        border: `3px solid ${active ? BLUE : '#bbb'}`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        transition: 'border-color 0.2s',
+                      }}
+                    >
+                      {active && (
+                        <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: BLUE }} />
+                      )}
+                    </Box>
+                    <Typography sx={{ fontSize: '0.8rem', fontWeight: active ? 700 : 400, color: active ? BLUE : 'text.secondary' }}>
+                      {opt.label}
+                    </Typography>
+                  </Box>
+                )
+              })}
+            </Box>
+          </Box>
         </Box>
 
         {/* タブ ＋ チケットリスト */}
-        <Card elevation={2} sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-          <Tabs
-            value={activeTab}
-            onChange={(_, v) => setActiveTab(v)}
-            sx={{ px: 2, borderBottom: 1, borderColor: 'divider', flexShrink: 0 }}
-          >
-            <Tab label={`順番待ち（${waitingTickets.length + calledTickets.length}組）`} />
-            <Tab label="保留" />
-          </Tabs>
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
 
-          <Box sx={{ flex: 1, overflowY: 'auto', p: 1 }}>
+          {/* タブヘッダー */}
+          <Box sx={{ display: 'flex', borderRadius: '4px 4px 0 0', overflow: 'hidden' }}>
+            {[
+              { label: `順番待ち（${waitingTickets.length + calledTickets.length}組）`, idx: 0 },
+              { label: '保留', idx: 1 },
+            ].map(({ label, idx }) => {
+              const active = activeTab === idx
+              return (
+                <Box
+                  key={idx}
+                  onClick={() => setActiveTab(idx)}
+                  sx={{
+                    flex: 1,
+                    py: 1.1,
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    bgcolor: active ? TAB_ACTIVE_BG : TAB_INACTIVE_BG,
+                    color: active ? '#fff' : '#555',
+                    fontWeight: 'bold',
+                    fontSize: '0.9rem',
+                    transition: 'background 0.2s, color 0.2s',
+                    userSelect: 'none',
+                  }}
+                >
+                  {label}
+                </Box>
+              )
+            })}
+          </Box>
+
+          {/* チケット一覧 */}
+          <Box
+            sx={{
+              flex: 1,
+              overflowY: 'auto',
+              border: '1px solid #e0e0e0',
+              borderTop: 'none',
+              borderRadius: '0 0 4px 4px',
+              bgcolor: '#fafafa',
+            }}
+          >
             {activeTab === 0 && (
               <>
-                {calledTickets.length === 0 && waitingTickets.length === 0 && (
+                {tickets.length === 0 && (
                   <Box display="flex" alignItems="center" justifyContent="center" height={120}>
                     <Typography color="text.disabled">現在の待ちはありません</Typography>
                   </Box>
                 )}
-                {calledTickets.map((t) => (
-                  <TicketRow key={t.id} ticket={t} boothId={booth.id} />
-                ))}
-                {waitingTickets.map((t) => (
+                {tickets.map((t) => (
                   <TicketRow key={t.id} ticket={t} boothId={booth.id} />
                 ))}
               </>
@@ -147,62 +181,116 @@ export default function BoothDashboard({ booth, tickets }: BoothDashboardProps) 
               </Box>
             )}
           </Box>
-        </Card>
+        </Box>
       </Box>
 
+      {/* ── 点線の縦区切り ───────────────────────── */}
+      <Box
+        sx={{
+          width: 0,
+          borderLeft: '2px dashed #c8c8c8',
+          alignSelf: 'stretch',
+          my: 2,
+          flexShrink: 0,
+        }}
+      />
+
       {/* ── 右パネル：発券フォーム ────────────── */}
-      <Box sx={{ width: 260, display: 'flex', flexDirection: 'column' }}>
-        <Card elevation={2} sx={{ flexGrow: 1 }}>
-          <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 3, height: '100%' }}>
-            <Typography variant="h6" fontWeight="bold">発券する</Typography>
-            <Divider />
+      <Box sx={{ width: '22%', minWidth: 220, maxWidth: 320, display: 'flex', flexDirection: 'column', p: 2.5, gap: 2.5 }}>
 
-            <Box>
-              <Typography variant="subtitle2" color="text.secondary" mb={2}>
-                人数を入力してください
-              </Typography>
-              <Box display="flex" alignItems="center" justifyContent="center" gap={2}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
-                  <Typography variant="caption" color="text.secondary">減らす</Typography>
-                  <IconButton
-                    onClick={() => setPartySize((p) => Math.max(1, p - 1))}
-                    size="large"
-                    sx={{ bgcolor: 'action.hover', borderRadius: 2 }}
-                  >
-                    <RemoveIcon />
-                  </IconButton>
-                </Box>
+        <Typography sx={{ fontWeight: 'bold', fontSize: '1.2rem', color: '#111' }}>
+          発券する
+        </Typography>
 
-                <Typography variant="h3" fontWeight="bold" sx={{ minWidth: 64, textAlign: 'center' }}>
-                  {partySize}
-                </Typography>
-
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
-                  <Typography variant="caption" color="text.secondary">増やす</Typography>
-                  <IconButton
-                    onClick={() => setPartySize((p) => p + 1)}
-                    size="large"
-                    sx={{ bgcolor: 'action.hover', borderRadius: 2 }}
-                  >
-                    <AddIcon />
-                  </IconButton>
-                </Box>
-              </Box>
+        {/* 人数選択 */}
+        <Box>
+          <Typography sx={{ color: 'text.secondary', fontSize: '1rem', mb: 1.5 }}>
+            人数を入力してください
+          </Typography>
+          <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
+              <Typography sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>減らす</Typography>
+              <IconButton
+                onClick={() => setPartySize((p) => Math.max(1, p - 1))}
+                sx={{
+                  bgcolor: BLUE,
+                  borderRadius: 1,
+                  width: 52, height: 52,
+                  color: '#fff',
+                  '&:hover': { bgcolor: '#133b6b' },
+                }}
+              >
+                <RemoveIcon fontSize="large" />
+              </IconButton>
             </Box>
 
-            <Button
-              variant="contained"
-              size="large"
-              fullWidth
-              disabled={issueSuspended || issuePending}
-              onClick={handleIssue}
-              startIcon={issuePending ? <CircularProgress size={18} color="inherit" /> : <ConfirmationNumberIcon />}
-              sx={{ py: 2, fontSize: '1.1rem', borderRadius: 2, mt: 'auto' }}
+            <Box
+              sx={{
+                border: '2px solid #333',
+                borderRadius: 1,
+                minWidth: 68,
+                height: 68,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                bgcolor: '#fff',
+              }}
             >
-              {issuePending ? '処理中...' : issueSuspended ? '発券停止中' : 'この内容で発券する'}
-            </Button>
-          </CardContent>
-        </Card>
+              <Typography sx={{ fontSize: '2.6rem', fontWeight: 'bold', color: '#111', lineHeight: 1 }}>
+                {partySize}
+              </Typography>
+            </Box>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
+              <Typography sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>増やす</Typography>
+              <IconButton
+                onClick={() => setPartySize((p) => p + 1)}
+                sx={{
+                  bgcolor: BLUE,
+                  borderRadius: 1,
+                  width: 52, height: 52,
+                  color: '#fff',
+                  '&:hover': { bgcolor: '#133b6b' },
+                }}
+              >
+                <AddIcon fontSize="large" />
+              </IconButton>
+            </Box>
+          </Box>
+        </Box>
+
+        {/* 発券ボタン */}
+        <Button
+          variant="contained"
+          size="large"
+          fullWidth
+          disabled={issueSuspended || issuePending}
+          onClick={handleIssue}
+          sx={{
+            bgcolor: issueSuspended ? '#aaa' : GREEN_BTN,
+            color: '#fff',
+            py: 1.75,
+            borderRadius: 1,
+            boxShadow: 'none',
+            mt: 'auto',
+            '&:hover': { bgcolor: issueSuspended ? '#aaa' : GREEN_BTN_HOVER, boxShadow: 'none' },
+            '&.Mui-disabled': { bgcolor: '#ddd', color: 'rgba(0,0,0,0.35)' },
+          }}
+        >
+          {issuePending ? (
+            <Box display="flex" alignItems="center" gap={1}>
+              <CircularProgress size={18} sx={{ color: '#fff' }} />
+              <span>処理中...</span>
+            </Box>
+          ) : issueSuspended ? (
+            <Typography sx={{ fontSize: '1rem', fontWeight: 'bold' }}>発券停止中</Typography>
+          ) : (
+            <Box sx={{ textAlign: 'center', lineHeight: 1.4 }}>
+              <Typography sx={{ fontSize: '1rem', opacity: 0.85 }}>この内容で</Typography>
+              <Typography sx={{ fontSize: '1.5rem', fontWeight: 'bold' }}>発券する</Typography>
+            </Box>
+          )}
+        </Button>
       </Box>
 
       {/* スナックバー通知 */}
@@ -225,66 +313,88 @@ function TicketRow({ ticket, boothId }: { ticket: Ticket; boothId: string }) {
   const [isPending, startTransition] = useTransition()
   const isCalled = ticket.status === 'called'
 
-  const waitTime = Math.floor(
-    (Date.now() - new Date(ticket.updated_at).getTime()) / 60000
-  )
-
   return (
     <Box
       sx={{
-        display: 'flex',
+        display: 'grid',
+        gridTemplateColumns: 'auto 1fr auto',
         alignItems: 'center',
         gap: 1.5,
         px: 2,
         py: 1.5,
-        borderRadius: 2,
-        mb: 0.5,
-        bgcolor: isCalled ? 'error.50' : 'background.default',
-        border: '1px solid',
-        borderColor: isCalled ? 'error.200' : 'divider',
-        opacity: isPending ? 0.6 : 1,
+        borderBottom: '1px solid #e8e8e8',
+        bgcolor: isCalled ? ROW_CALLED_BG : '#fff',
+        borderLeft: isCalled ? '4px solid #e53935' : '4px solid transparent',
+        opacity: isPending ? 0.5 : 1,
+        transition: 'opacity 0.2s',
+        '&:last-child': { borderBottom: 'none' },
       }}
     >
-      {/* ステータスチップ */}
-      <Chip
-        label={isCalled ? '呼出中' : '待ち'}
-        color={isCalled ? 'error' : 'default'}
-        size="small"
-        sx={{ minWidth: 56 }}
-      />
+      {/* ステータスバッジ */}
+      <Box
+        sx={{
+          bgcolor: isCalled ? '#e53935' : '#546e7a',
+          color: '#fff',
+          fontWeight: 'bold',
+          fontSize: '0.78rem',
+          width: 48,
+          py: 0.5,
+          borderRadius: 0.75,
+          textAlign: 'center',
+          flexShrink: 0,
+        }}
+      >
+        {isCalled ? '呼出' : '待ち'}
+      </Box>
 
-      {/* 番号 */}
-      <Typography variant="h5" fontWeight="bold" sx={{ minWidth: 48 }}>
-        {ticket.ticket_number}
-      </Typography>
-
-      {/* 人数・時間 */}
-      <Box sx={{ flex: 1 }}>
-        <Typography variant="body2" color="text.secondary">
-          {ticket.party_size}人 ・ {waitTime}分前
+      {/* 番号・人数・時刻 */}
+      <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1.5 }}>
+        <Typography sx={{ fontWeight: 'bold', fontSize: '2rem', color: '#111', lineHeight: 1 }}>
+          {ticket.ticket_number}
+        </Typography>
+        <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>
+          人数 {ticket.party_size}
+        </Typography>
+        <Typography sx={{ color: 'text.disabled', fontSize: '0.78rem' }}>
+          {new Date(ticket.created_at).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}
         </Typography>
       </Box>
 
       {/* アクションボタン */}
       {isCalled ? (
-        <Box display="flex" gap={1}>
+        <Box display="flex" gap={0.75} alignItems="center">
           <Button
             size="small"
             variant="outlined"
-            color="inherit"
-            startIcon={<UndoIcon fontSize="small" />}
             disabled={isPending}
             onClick={() => startTransition(() => returnToWaiting(ticket.id, boothId))}
+            sx={{
+              color: '#666',
+              borderColor: '#bbb',
+              fontSize: '0.72rem',
+              py: 0.5,
+              px: 1,
+              minWidth: 0,
+              lineHeight: 1.3,
+              whiteSpace: 'nowrap',
+              '&:hover': { borderColor: '#555', bgcolor: 'rgba(0,0,0,0.04)' },
+            }}
           >
-            取消
+            呼出<br />取消
           </Button>
           <Button
             size="small"
             variant="contained"
-            color="success"
-            startIcon={<CheckIcon fontSize="small" />}
             disabled={isPending}
+            startIcon={<CheckIcon fontSize="small" />}
             onClick={() => startTransition(() => completeTicket(ticket.id, boothId))}
+            sx={{
+              bgcolor: '#1565c0',
+              fontWeight: 'bold',
+              fontSize: '0.85rem',
+              py: 0.75,
+              '&:hover': { bgcolor: '#0d47a1' },
+            }}
           >
             完了
           </Button>
@@ -293,10 +403,16 @@ function TicketRow({ ticket, boothId }: { ticket: Ticket; boothId: string }) {
         <Button
           size="small"
           variant="contained"
-          color="primary"
-          startIcon={<PhoneInTalkIcon fontSize="small" />}
           disabled={isPending}
+          startIcon={<PhoneInTalkIcon fontSize="small" />}
           onClick={() => startTransition(() => callSpecificTicket(ticket.id, boothId))}
+          sx={{
+            bgcolor: '#1565c0',
+            fontWeight: 'bold',
+            py: 0.75,
+            px: 2,
+            '&:hover': { bgcolor: '#0d47a1' },
+          }}
         >
           呼出
         </Button>

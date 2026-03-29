@@ -19,7 +19,7 @@ export default async function BoothDashboardPage({ params }: PageProps) {
       .select('*')
       .eq('booth_id', booth_id)
       .in('status', ['called', 'waiting'])
-      .order('updated_at', { ascending: true }),
+      .order('ticket_number', { ascending: true }),
   ])
 
   if (error || !booth) notFound()
