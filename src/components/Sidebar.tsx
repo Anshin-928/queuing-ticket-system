@@ -11,7 +11,7 @@ import Link from 'next/link'
 import ArrowBackOutlinedIcon from '@mui/icons-material/ArrowBackOutlined'
 import { menuGroups, getBoothPath } from '@/config/adminMenu'
 
-export const closedDrawerWidth = 72
+export const closedDrawerWidth = 0
 export const openDrawerWidth   = 280
 
 interface SidebarProps {
@@ -38,13 +38,14 @@ export default function Sidebar({ isSidebarOpen, boothId, boothName }: SidebarPr
       anchor="left"
       open={isSidebarOpen}
       sx={{
-        width: isSidebarOpen ? openDrawerWidth : closedDrawerWidth,
+        width: isSidebarOpen ? openDrawerWidth : 0,
         flexShrink: 0,
         whiteSpace: 'nowrap',
         boxSizing: 'border-box',
         transition: 'width 0.2s',
+        overflow: 'hidden',
         '& .MuiDrawer-paper': {
-          width: isSidebarOpen ? openDrawerWidth : closedDrawerWidth,
+          width: isSidebarOpen ? openDrawerWidth : 0,
           transition: 'width 0.2s',
           overflowX: 'hidden',
           backgroundColor: theme.palette.background.default,
