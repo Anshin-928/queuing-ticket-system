@@ -29,10 +29,7 @@ export default function BoothPanel({ booth, calledTicket, waitingCount }: BoothP
   return (
     <Box sx={{ maxWidth: 480, display: 'flex', flexDirection: 'column', gap: 4 }}>
 
-      <Box display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1}>
-        <Typography variant="h4" fontWeight="bold">
-          {booth.name}
-        </Typography>
+      <Box>
         <Chip
           label={booth.status === 'empty' ? '直行モード' : '整理券モード'}
           color={booth.status === 'empty' ? 'success' : 'warning'}

@@ -2,7 +2,6 @@
 'use client'
 
 import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
 import { getMenuItemByKey } from '@/config/adminMenu'
 
@@ -18,8 +17,6 @@ export default function ComingSoonPage({ itemKey }: ComingSoonPageProps) {
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1} gap={2}>
-      <Icon sx={{ fontSize: 64, color: 'text.disabled' }} />
-      <Typography variant="h5" fontWeight="bold" color="text.secondary">{text}</Typography>
       <Chip label="Coming Soon" color="default" />
     </Box>
   )

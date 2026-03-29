@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { Box, AppBar, Toolbar, IconButton, Typography, useTheme } from '@mui/material'
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded'
 import Sidebar, { closedDrawerWidth, openDrawerWidth } from '@/components/Sidebar'
+import PageHeader from '@/components/PageHeader'
 
 interface BoothAdminLayoutProps {
   children: React.ReactNode
@@ -38,7 +39,7 @@ export default function BoothAdminLayout({ children, boothId, boothName }: Booth
             <MenuRoundedIcon />
           </IconButton>
           <Typography variant="h6" fontWeight="bold" sx={{ fontSize: '20px', letterSpacing: '-0.3px' }}>
-            整理券管理システム
+          いばらき ✕ 立命館DAY 2026
           </Typography>
         </Toolbar>
       </AppBar>
@@ -73,7 +74,10 @@ export default function BoothAdminLayout({ children, boothId, boothName }: Booth
             flexDirection: 'column',
           }}
         >
-          {children}
+          <Box sx={{ maxWidth: '1100px', width: '100%', mx: 'auto', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+            <PageHeader boothId={boothId} />
+            {children}
+          </Box>
         </Box>
       </Box>
     </Box>

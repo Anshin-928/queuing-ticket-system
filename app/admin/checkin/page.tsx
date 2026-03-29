@@ -1,7 +1,7 @@
 // app/admin/checkin/page.tsx
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
-import Chip from '@mui/material/Chip'
+
+import { useState } from 'react';
+import { Box, Typography, Chip } from '@mui/material'
 import TabletMacOutlinedIcon from '@mui/icons-material/TabletMacOutlined'
 
 export default function CheckinPage() {
@@ -11,6 +11,7 @@ export default function CheckinPage() {
       <Typography variant="h5" fontWeight="bold" color="text.secondary">
         受付操作
       </Typography>
+      <Box>aa</Box>
       <Chip label="Coming Soon" color="default" />
     </Box>
   )
