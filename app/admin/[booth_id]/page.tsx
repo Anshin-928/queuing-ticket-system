@@ -1,7 +1,7 @@
 // app/admin/[booth_id]/page.tsx
 import { notFound } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import BoothPanel from './BoothPanel'
+import BoothDashboard from './BoothDashboard'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,22 +12,17 @@ interface PageProps {
 export default async function BoothDashboardPage({ params }: PageProps) {
   const { booth_id } = await params
 
-  const { data: booth, error } = await supabase
-    .from('booths')
-    .select('*')
-    .eq('id', booth_id)
-    .single()
+  const [{ data: booth, error }, { data: tickets }] = await Promise.all([
+    supabase.from('booths').select('*').eq('id', booth_id).single(),
+    supabase
+      .from('tickets')
+      .select('*')
+      .eq('booth_id', booth_id)
+      .in('status', ['called', 'waiting'])
+      .order('updated_at', { ascending: true }),
+  ])
 
   if (error || !booth) notFound()
 
-  const { data: tickets } = await supabase
-    .from('tickets')
-    .select('*')
-    .eq('booth_id', booth_id)
-    .in('status', ['called', 'waiting'])
-
-  const calledTicket = tickets?.find((t) => t.status === 'called') ?? null
-  const waitingCount = tickets?.filter((t) => t.status === 'waiting').length ?? 0
-
-  return <BoothPanel booth={booth} calledTicket={calledTicket} waitingCount={waitingCount} />
+  return <BoothDashboard booth={booth} tickets={tickets ?? []} />
 }

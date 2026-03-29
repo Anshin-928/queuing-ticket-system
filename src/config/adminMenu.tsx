@@ -1,7 +1,6 @@
 // src/config/adminMenu.tsx
 
 import StorefrontOutlinedIcon   from '@mui/icons-material/StorefrontOutlined'
-import LaptopOutlinedIcon       from '@mui/icons-material/LaptopOutlined'
 import TvOutlinedIcon           from '@mui/icons-material/TvOutlined'
 import QrCodeOutlinedIcon       from '@mui/icons-material/QrCodeOutlined'
 import SettingsOutlinedIcon     from '@mui/icons-material/SettingsOutlined'
@@ -24,9 +23,8 @@ export const menuGroups: MenuGroupConfig[] = [
   {
     label: '運営当日',
     items: [
-      { key: 'dashboard', text: 'ブース管理',       pathSegment: null,       Icon: StorefrontOutlinedIcon },
-      { key: 'checkin',   text: '受付操作',         pathSegment: 'checkin',  Icon: LaptopOutlinedIcon },
-      { key: 'monitor',   text: '呼び出しモニター', pathSegment: 'monitor',  Icon: TvOutlinedIcon },
+      { key: 'dashboard', text: '管理画面',         pathSegment: null,       Icon: StorefrontOutlinedIcon },
+      { key: 'monitor',   text: '呼び出し画面', pathSegment: 'monitor',  Icon: TvOutlinedIcon },
     ],
   },
   {

@@ -9,7 +9,7 @@ export default function MonitorPage() {
     <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1} gap={2}>
       <TvOutlinedIcon sx={{ fontSize: 64, color: 'text.disabled' }} />
       <Typography variant="h5" fontWeight="bold" color="text.secondary">
-        呼び出しモニター
+        呼び出し画面
       </Typography>
       <Chip label="Coming Soon" color="default" />
     </Box>
