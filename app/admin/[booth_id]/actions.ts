@@ -3,22 +3,9 @@
 
 import { revalidatePath } from 'next/cache'
 import { supabase } from '@/lib/supabase'
-import type { BoothStatus } from '@/types/database'
-
-export async function toggleBoothStatus(boothId: string, currentStatus: BoothStatus) {
-  const newStatus: BoothStatus = currentStatus === 'empty' ? 'crowded' : 'empty'
-
-  const { error } = await supabase
-    .from('booths')
-    .update({ status: newStatus })
-    .eq('id', boothId)
-
-  if (error) throw new Error(error.message)
-
-  revalidatePath(`/admin/${boothId}`)
-}
 
 export async function callNextTicket(boothId: string) {
+  // 現在 'called' のチケットを 'done' に更新
   const { error: doneError } = await supabase
     .from('tickets')
     .update({ status: 'done', updated_at: new Date().toISOString() })
@@ -27,6 +14,7 @@ export async function callNextTicket(boothId: string) {
 
   if (doneError) throw new Error(doneError.message)
 
+  // 最も古い 'waiting' チケットを 'called' に更新
   const { data: nextTicket, error: fetchError } = await supabase
     .from('tickets')
     .select('id')

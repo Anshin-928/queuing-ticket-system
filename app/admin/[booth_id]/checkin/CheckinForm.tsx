@@ -7,14 +7,13 @@ import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
 import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
-import Chip from '@mui/material/Chip'
 import Divider from '@mui/material/Divider'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
 import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import type { Booth } from '@/types/database'
-import { issueTicket, type CheckinResult } from './actions'
+import { issueTicket, type IssueResult } from './actions'
 
 const AUTO_RESET_MS = 5000
 
@@ -24,7 +23,7 @@ interface CheckinFormProps {
 
 export default function CheckinForm({ booth }: CheckinFormProps) {
   const [partySize, setPartySize] = useState<number>(1)
-  const [result, setResult] = useState<CheckinResult | null>(null)
+  const [result, setResult] = useState<IssueResult | null>(null)
   const [isPending, startTransition] = useTransition()
 
   useEffect(() => {
@@ -44,16 +43,8 @@ export default function CheckinForm({ booth }: CheckinFormProps) {
   return (
     <Box sx={{ maxWidth: 560, display: 'flex', flexDirection: 'column', gap: 4 }}>
 
-      <Box>
-        <Chip
-          label={booth.status === 'empty' ? '直行モード' : '整理券モード'}
-          color={booth.status === 'empty' ? 'success' : 'warning'}
-        />
-      </Box>
-
       <Divider />
 
-      {/* 人数選択 */}
       <Box>
         <Typography variant="subtitle1" fontWeight="bold" mb={1.5}>
           人数選択
@@ -79,7 +70,6 @@ export default function CheckinForm({ booth }: CheckinFormProps) {
         </Typography>
       </Box>
 
-      {/* 発券ボタン */}
       <Button
         variant="contained"
         size="large"
@@ -91,7 +81,6 @@ export default function CheckinForm({ booth }: CheckinFormProps) {
         {isPending ? '処理中...' : '発券する'}
       </Button>
 
-      {/* 結果表示 */}
       {result && (
         <ResultAlert result={result} onClose={() => setResult(null)} />
       )}
@@ -99,8 +88,8 @@ export default function CheckinForm({ booth }: CheckinFormProps) {
   )
 }
 
-function ResultAlert({ result, onClose }: { result: CheckinResult; onClose: () => void }) {
-  if (result.type === 'direct') {
+function ResultAlert({ result, onClose }: { result: IssueResult; onClose: () => void }) {
+  if (result.type === 'issued') {
     return (
       <Alert
         severity="success"
@@ -108,20 +97,7 @@ function ResultAlert({ result, onClose }: { result: CheckinResult; onClose: () =
         onClose={onClose}
         sx={{ fontSize: '1rem' }}
       >
-        <strong>直行案内</strong>　そのままブースへご案内ください。
-      </Alert>
-    )
-  }
-
-  if (result.type === 'crowded') {
-    return (
-      <Alert
-        severity="info"
-        icon={<CheckCircleOutlineIcon />}
-        onClose={onClose}
-        sx={{ fontSize: '1rem' }}
-      >
-        整理券を発券しました。&nbsp;
+        発券しました。&nbsp;
         <Typography component="span" fontWeight="bold" fontSize="1.2rem">
           {result.ticketNumber} 番
         </Typography>

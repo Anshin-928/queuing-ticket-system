@@ -6,8 +6,6 @@ import TvOutlinedIcon           from '@mui/icons-material/TvOutlined'
 import QrCodeOutlinedIcon       from '@mui/icons-material/QrCodeOutlined'
 import SettingsOutlinedIcon     from '@mui/icons-material/SettingsOutlined'
 import RestartAltOutlinedIcon   from '@mui/icons-material/RestartAltOutlined'
-import BarChartOutlinedIcon     from '@mui/icons-material/BarChartOutlined'
-import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined'
 import type { SvgIconComponent } from '@mui/icons-material'
 
 export interface MenuItemConfig {
@@ -37,13 +35,6 @@ export const menuGroups: MenuGroupConfig[] = [
       { key: 'tickets',   text: '整理券 PDF生成', pathSegment: 'tickets',  Icon: QrCodeOutlinedIcon },
       { key: 'settings',  text: 'ブース設定',     pathSegment: 'settings', Icon: SettingsOutlinedIcon },
       { key: 'reset',     text: 'イベント初期化', pathSegment: 'reset',    Icon: RestartAltOutlinedIcon },
-    ],
-  },
-  {
-    label: '集計・分析',
-    items: [
-      { key: 'stats',  text: '来場者数ダッシュボード', pathSegment: 'stats',  Icon: BarChartOutlinedIcon },
-      { key: 'export', text: 'CSVエクスポート',        pathSegment: 'export', Icon: FileDownloadOutlinedIcon },
     ],
   },
 ]
