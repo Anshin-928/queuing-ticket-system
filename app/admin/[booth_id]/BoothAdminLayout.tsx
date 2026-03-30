@@ -15,8 +15,9 @@ interface BoothAdminLayoutProps {
 }
 
 export default function BoothAdminLayout({ children, boothId, boothName }: BoothAdminLayoutProps) {
-  const [isSidebarOpen, setSidebarOpen] = useState(true)
   const pathname = usePathname()
+  const isMonitor = pathname === `/admin/${boothId}/monitor`
+  const [isSidebarOpen, setSidebarOpen] = useState(!isMonitor)
 
   const currentItem = allMenuItems.find((item) => {
     const path = getBoothPath(boothId, item.pathSegment)
@@ -36,8 +37,8 @@ export default function BoothAdminLayout({ children, boothId, boothName }: Booth
           width: `calc(100% - ${drawerWidth}px)`,
           ml: `${drawerWidth}px`,
           transition: 'width 0.2s, margin 0.2s',
-          backgroundColor: '#F0EEEB',
-          color: '#1a1a1a',
+          backgroundColor: isMonitor ? '#274a79' : '#F0EEEB',
+          color: isMonitor ? '#fff' : '#1a1a1a',
           borderBottom: 'none',
           boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
         }}
@@ -47,31 +48,44 @@ export default function BoothAdminLayout({ children, boothId, boothName }: Booth
           {/* ハンバーガー（サイドバーが閉じているときのみ表示） */}
           {!isSidebarOpen && (
             <>
-              {/* 左右均等な余白でアイコンを囲む */}
               <Box sx={{ display: 'flex', alignItems: 'center', px: 1.5 }}>
                 <IconButton
                   onClick={() => setSidebarOpen((prev) => !prev)}
                   size="small"
-                  sx={{ color: '#555' }}
+                  sx={{ color: isMonitor ? '#fff' : '#555' }}
                 >
                   <MenuRoundedIcon />
                 </IconButton>
               </Box>
-              <Divider orientation="vertical" flexItem sx={{ borderColor: 'rgba(0,0,0,0.12)' }} />
+              <Divider orientation="vertical" flexItem sx={{ borderColor: isMonitor ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.12)' }} />
             </>
           )}
 
-          {/* 現在ページ：アイコン ＋ タイトル */}
-          <Box display="flex" alignItems="center" gap={1} sx={{ px: 2.5 }}>
-            {currentItem && (
-              <>
-                <currentItem.Icon sx={{ fontSize: '32px', color: '#1E3A5F' }} />
-                <Typography variant="subtitle1" fontWeight="bold" sx={{ fontSize: '22px', color: '#1a1a1a', letterSpacing: '-0.2px' }}>
-                  {currentItem.text}
-                </Typography>
-              </>
-            )}
-          </Box>
+          {isMonitor ? (
+            /* 呼び出し画面専用 */
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', px: 2.5 }}>
+              {/* 左端：ブース名 */}
+              <Typography sx={{ fontSize: '26px', fontWeight: 700, color: '#fff', letterSpacing: '-0.3px' }}>
+                {boothName}
+              </Typography>
+              {/* 右端：イベント名 */}
+              <Typography sx={{ fontSize: '18px', color: 'rgba(255,255,255,0.75)', letterSpacing: '0.04em' }}>
+                いばらき × 立命館DAY 2026
+              </Typography>
+            </Box>
+          ) : (
+            /* 通常ページ */
+            <Box display="flex" alignItems="center" gap={1} sx={{ px: 2.5 }}>
+              {currentItem && (
+                <>
+                  <currentItem.Icon sx={{ fontSize: '32px', color: '#1E3A5F' }} />
+                  <Typography variant="subtitle1" fontWeight="bold" sx={{ fontSize: '22px', color: '#1a1a1a', letterSpacing: '-0.2px' }}>
+                    {currentItem.text}
+                  </Typography>
+                </>
+              )}
+            </Box>
+          )}
 
         </Toolbar>
       </AppBar>
@@ -98,9 +112,8 @@ export default function BoothAdminLayout({ children, boothId, boothName }: Booth
         <Box
           sx={{
             flexGrow: 1,
-            overflowX: 'hidden',
-            overflowY: 'auto',
-            p: 4,
+            overflow: 'hidden',
+            ...(isMonitor ? {} : { overflowY: 'auto', p: 4 }),
             display: 'flex',
             flexDirection: 'column',
           }}
