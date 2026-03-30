@@ -9,11 +9,16 @@ import IconButton from '@mui/material/IconButton'
 import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
 import CircularProgress from '@mui/material/CircularProgress'
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import DialogActions from '@mui/material/DialogActions'
+import PeopleOutlineOutlinedIcon from '@mui/icons-material/PeopleOutlineOutlined';
 import AddIcon from '@mui/icons-material/Add'
 import RemoveIcon from '@mui/icons-material/Remove'
-import CheckIcon from '@mui/icons-material/Check'
 import UndoIcon from '@mui/icons-material/Undo'
 import NotificationsActiveOutlinedIcon from '@mui/icons-material/NotificationsActiveOutlined'
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import type { Booth, Ticket } from '@/types/database'
 import {
   callSpecificTicket,
@@ -73,8 +78,9 @@ export default function BoothDashboard({ booth, tickets }: BoothDashboardProps) 
 
           {/* 待ち組数 */}
           <Box>
-            <Typography sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.85rem', mb: 0.25 }}>
-              現在の待ち組数
+            <Typography sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary', fontWeight: 600, fontSize: '1rem', mb: 0.25 }}>
+              <PeopleOutlineOutlinedIcon sx={{ fontSize: 30, mr: 0.5}} />
+              現在の待ち組
             </Typography>
             <Box display="flex" alignItems="baseline" gap={1}>
               <Typography sx={{ fontSize: '4rem', fontWeight: 'bold', color: '#111', lineHeight: 1 }}>
@@ -91,10 +97,10 @@ export default function BoothDashboard({ booth, tickets }: BoothDashboardProps) 
 
           {/* 発券モードトグル */}
           <Box sx={{ justifySelf: 'flex-end', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <Typography sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.85rem', mb: 1 }}>
+            <Typography sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '1rem', mb: 1.5 }}>
               本日の発券
             </Typography>
-            <Box display="flex" gap={2.5}>
+            <Box display="flex" gap={3}>
               {[
                 { label: '発券する', suspended: false },
                 { label: '停止する', suspended: true },
@@ -309,8 +315,8 @@ export default function BoothDashboard({ booth, tickets }: BoothDashboardProps) 
 // ── チケット1行分 ────────────────────────────────────
 function TicketRow({ ticket, boothId }: { ticket: Ticket; boothId: string }) {
   const [isPending, startTransition] = useTransition()
+  const [confirmOpen, setConfirmOpen] = useState(false)
   const isCalled  = ticket.status === 'called'
-  const isWaiting = ticket.status === 'waiting'
   const isOnHold  = ticket.status === 'on_hold'
 
   const rowBg      = isCalled ? ROW_CALLED_BG : isOnHold ? ROW_HOLD_BG : '#fff'
@@ -471,7 +477,7 @@ function TicketRow({ ticket, boothId }: { ticket: Ticket; boothId: string }) {
             <Button
               variant="contained"
               disabled={isPending}
-              onClick={() => startTransition(() => completeTicket(ticket.id, boothId))}
+              onClick={() => setConfirmOpen(true)}
               sx={{
                 bgcolor: GREEN_BTN,
                 color: '#fff',
@@ -512,7 +518,7 @@ function TicketRow({ ticket, boothId }: { ticket: Ticket; boothId: string }) {
             <Button
               variant="contained"
               disabled={isPending}
-              onClick={() => startTransition(() => completeTicket(ticket.id, boothId))}
+              onClick={() => setConfirmOpen(true)}
               sx={{
                 bgcolor: GREEN_BTN,
                 color: '#fff',
@@ -529,6 +535,56 @@ function TicketRow({ ticket, boothId }: { ticket: Ticket; boothId: string }) {
           </>
         )}
       </Box>
+
+      {/* ── 完了確認ダイアログ ──────────────────── */}
+      <Dialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        PaperProps={{
+          sx: { borderRadius: 3, px: 1, py: 0.5, minWidth: 320 },
+        }}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pb: 1 }}>
+          <CheckCircleOutlineIcon sx={{ color: GREEN_BTN, fontSize: 28 }} />
+          <Typography variant="h6" fontWeight="bold">完了にしますか？</Typography>
+        </DialogTitle>
+
+        <DialogContent sx={{ pt: 0, pb: 2 }}>
+          <Typography sx={{ color: 'text.secondary', fontSize: '1.2rem' }}>
+            整理券
+            <Typography component="span" fontWeight="bold" sx={{ fontSize: '2rem', mx: 0.5, color: '#111' }}>
+              {ticket.ticket_number}
+            </Typography>
+            番を完了にすると一覧から削除されます。
+          </Typography>
+          <Typography sx={{ color: 'text.secondary', fontSize: '1rem', mt: 0.75 }}>
+            この操作は取り消せません。
+          </Typography>
+        </DialogContent>
+
+        <DialogActions sx={{ px: 2.5, pb: 2.5, gap: 1 }}>
+          <Button
+            variant="outlined"
+            size='large'
+            onClick={() => setConfirmOpen(false)}
+            sx={{ flex: 1, borderColor: '#ccc', color: '#555', '&:hover': { borderColor: '#999', bgcolor: 'rgba(0,0,0,0.03)' } }}
+          >
+            キャンセル
+          </Button>
+          <Button
+            variant="contained"
+            size='large'
+            disabled={isPending}
+            onClick={() => {
+              setConfirmOpen(false)
+              startTransition(() => completeTicket(ticket.id, boothId))
+            }}
+            sx={{ flex: 1, bgcolor: GREEN_BTN, boxShadow: 'none', fontWeight: 'bold', '&:hover': { bgcolor: GREEN_BTN_HOVER, boxShadow: 'none' } }}
+          >
+            完了
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }
