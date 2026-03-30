@@ -7,6 +7,7 @@ import { Box, AppBar, Toolbar, IconButton, Typography, Divider } from '@mui/mate
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded'
 import Sidebar, { openDrawerWidth } from '@/components/Sidebar'
 import { allMenuItems, getBoothPath } from '@/config/adminMenu'
+import { MonitorBadgeProvider, useMonitorBadge } from '@/context/monitorBadge'
 
 interface BoothAdminLayoutProps {
   children: React.ReactNode
@@ -14,10 +15,11 @@ interface BoothAdminLayoutProps {
   boothName: string
 }
 
-export default function BoothAdminLayout({ children, boothId, boothName }: BoothAdminLayoutProps) {
+function BoothAdminLayoutInner({ children, boothId, boothName }: BoothAdminLayoutProps) {
   const pathname = usePathname()
   const isMonitor = pathname === `/admin/${boothId}/monitor`
   const [isSidebarOpen, setSidebarOpen] = useState(!isMonitor)
+  const { waitingCount } = useMonitorBadge()
 
   const currentItem = allMenuItems.find((item) => {
     const path = getBoothPath(boothId, item.pathSegment)
@@ -29,7 +31,7 @@ export default function BoothAdminLayout({ children, boothId, boothName }: Booth
   return (
     <Box sx={{ display: 'flex', height: '100vh', backgroundColor: '#ffffff' }}>
 
-      {/* ── AppBar ─────────────────────────────────── */}
+      {/* AppBar */}
       <AppBar
         position="fixed"
         elevation={0}
@@ -68,10 +70,24 @@ export default function BoothAdminLayout({ children, boothId, boothName }: Booth
               <Typography sx={{ fontSize: '26px', fontWeight: 700, color: '#fff', letterSpacing: '-0.3px' }}>
                 {boothName}
               </Typography>
-              {/* 右端：イベント名 */}
-              <Typography sx={{ fontSize: '18px', color: 'rgba(255,255,255,0.75)', letterSpacing: '0.04em' }}>
-                いばらき × 立命館DAY 2026
-              </Typography>
+              {/* 右端：待ち組数バッジ ＋ イベント名 */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <Box sx={{
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  bgcolor: '#fff', borderRadius: '50px',
+                  px: '18px', py: '6px',
+                }}>
+                  <Typography sx={{ fontSize: '28px', fontWeight: 700, color: '#274a79', lineHeight: 1 }}>
+                    {waitingCount}
+                  </Typography>
+                  <Typography sx={{ fontSize: '16px', fontWeight: 'bold', color: '#274a79', opacity: 0.75, mt: '2px' }}>
+                    組待ち
+                  </Typography>
+                </Box>
+                <Typography sx={{ fontSize: '18px', color: 'rgba(255,255,255,0.75)', letterSpacing: '0.04em' }}>
+                  いばらき × 立命館DAY 2026
+                </Typography>
+              </Box>
             </Box>
           ) : (
             /* 通常ページ */
@@ -90,10 +106,10 @@ export default function BoothAdminLayout({ children, boothId, boothName }: Booth
         </Toolbar>
       </AppBar>
 
-      {/* ── サイドバー ─────────────────────────────── */}
+      {/* サイドバー */}
       <Sidebar isSidebarOpen={isSidebarOpen} boothId={boothId} boothName={boothName} onToggle={() => setSidebarOpen((p) => !p)} />
 
-      {/* ── メインコンテンツ ──────────────────────── */}
+      {/* メインコンテンツ */}
       <Box
         component="main"
         sx={{
@@ -122,5 +138,13 @@ export default function BoothAdminLayout({ children, boothId, boothName }: Booth
         </Box>
       </Box>
     </Box>
+  )
+}
+
+export default function BoothAdminLayout(props: BoothAdminLayoutProps) {
+  return (
+    <MonitorBadgeProvider>
+      <BoothAdminLayoutInner {...props} />
+    </MonitorBadgeProvider>
   )
 }

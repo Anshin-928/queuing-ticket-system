@@ -3,6 +3,7 @@
 
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
+import GlobalStyles from '@mui/material/GlobalStyles'
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
 
 const theme = createTheme({
@@ -46,6 +47,31 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
     <AppRouterCacheProvider>
       <ThemeProvider theme={theme}>
         <CssBaseline />
+        <GlobalStyles styles={{
+          '*': {
+            scrollbarWidth: 'thin',
+            scrollbarColor: 'transparent transparent',
+            transition: 'scrollbar-color 0.3s',
+          },
+          '*:hover': {
+            scrollbarColor: 'rgba(0,0,0,0.18) transparent',
+          },
+          '*::-webkit-scrollbar': {
+            width: '6px',
+            height: '6px',
+          },
+          '*::-webkit-scrollbar-track': {
+            background: 'transparent',
+          },
+          '*::-webkit-scrollbar-thumb': {
+            background: 'transparent',
+            borderRadius: '99px',
+            transition: 'background 0.3s',
+          },
+          '*:hover::-webkit-scrollbar-thumb': {
+            background: 'rgba(0,0,0,0.18)',
+          },
+        }} />
         {children}
       </ThemeProvider>
     </AppRouterCacheProvider>

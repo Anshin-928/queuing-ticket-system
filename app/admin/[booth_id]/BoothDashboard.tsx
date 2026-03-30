@@ -70,7 +70,7 @@ export default function BoothDashboard({ booth, tickets }: BoothDashboardProps) 
 
   return (
     <Box sx={{ display: 'flex', flexGrow: 1, minHeight: 0, overflow: 'hidden' }}>
-      {/* ── 左パネル ─────────────────────────────── */}
+      {/* 左パネル */}
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, p: 2, gap: 2 }}>
 
         {/* 上段：待ち組数 ＋ 発券モードトグル */}
@@ -206,7 +206,7 @@ export default function BoothDashboard({ booth, tickets }: BoothDashboardProps) 
         </Box>
       </Box>
 
-      {/* ── 点線の縦区切り ───────────────────────── */}
+      {/* 点線の縦区切り */}
       <Box
         sx={{
           width: 0,
@@ -217,7 +217,7 @@ export default function BoothDashboard({ booth, tickets }: BoothDashboardProps) 
         }}
       />
 
-      {/* ── 右パネル：発券フォーム ────────────── */}
+      {/* 右パネル：発券フォーム */}
       <Box sx={{ width: '22%', minWidth: 220, maxWidth: 320, display: 'flex', flexDirection: 'column', p: 2.5, gap: 2.5 }}>
 
         <Typography sx={{ fontWeight: 'bold', fontSize: '1.2rem', color: '#111' }}>
@@ -312,7 +312,7 @@ export default function BoothDashboard({ booth, tickets }: BoothDashboardProps) 
   )
 }
 
-// ── チケット1行分 ────────────────────────────────────
+// チケット1行分
 function TicketRow({ ticket, boothId }: { ticket: Ticket; boothId: string }) {
   const [isPending, startTransition] = useTransition()
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -343,7 +343,7 @@ function TicketRow({ ticket, boothId }: { ticket: Ticket; boothId: string }) {
         '&:last-child': { borderBottom: 'none' },
       }}
     >
-      {/* ── 左：縦長ボタン（アイコン上・テキスト下） ── */}
+      {/* 左：縦長ボタン（アイコン上・テキスト下） */}
       <Box
         sx={{
           display: 'flex',
@@ -403,7 +403,7 @@ function TicketRow({ ticket, boothId }: { ticket: Ticket; boothId: string }) {
         )}
       </Box>
 
-      {/* ── 中央：ステータス＋時刻 / 番号 / 人数 ── */}
+      {/* 中央：ステータス＋時刻 / 番号 / 人数 */}
       <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', px: 2, py: 1.25, gap: 0.25 }}>
 
         {/* 上行：バッジ（左）＋ 時刻（右） */}
@@ -438,7 +438,7 @@ function TicketRow({ ticket, boothId }: { ticket: Ticket; boothId: string }) {
         </Typography>
       </Box>
 
-      {/* ── 右：ボタン群（縦 1:2 比率） ────────── */}
+      {/* 右：ボタン群（縦 1:2 比率） */}
       <Box
         sx={{
           display: 'flex',
@@ -536,7 +536,7 @@ function TicketRow({ ticket, boothId }: { ticket: Ticket; boothId: string }) {
         )}
       </Box>
 
-      {/* ── 完了確認ダイアログ ──────────────────── */}
+      {/* 完了確認ダイアログ */}
       <Dialog
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
@@ -546,7 +546,7 @@ function TicketRow({ ticket, boothId }: { ticket: Ticket; boothId: string }) {
       >
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pb: 1 }}>
           <CheckCircleOutlineIcon sx={{ color: GREEN_BTN, fontSize: 28 }} />
-          <Typography variant="h6" fontWeight="bold">完了にしますか？</Typography>
+          <Typography variant="h6" component="span" fontWeight="bold">完了にしますか？</Typography>
         </DialogTitle>
 
         <DialogContent sx={{ pt: 0, pb: 2 }}>
