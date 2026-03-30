@@ -11,13 +11,15 @@ import Alert from '@mui/material/Alert'
 import CircularProgress from '@mui/material/CircularProgress'
 import AddIcon from '@mui/icons-material/Add'
 import RemoveIcon from '@mui/icons-material/Remove'
-import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk'
 import CheckIcon from '@mui/icons-material/Check'
+import UndoIcon from '@mui/icons-material/Undo'
+import NotificationsActiveOutlinedIcon from '@mui/icons-material/NotificationsActiveOutlined'
 import type { Booth, Ticket } from '@/types/database'
 import {
   callSpecificTicket,
   completeTicket,
   returnToWaiting,
+  holdTicket,
 } from './actions'
 import { issueTicket } from './checkin/actions'
 
@@ -27,7 +29,8 @@ const GREEN_BTN       = '#45a149'
 const GREEN_BTN_HOVER = '#39863d'
 const TAB_ACTIVE_BG   = '#3b72bb'
 const TAB_INACTIVE_BG = '#e0e0e0'
-const ROW_CALLED_BG   = '#fff3f3'
+const ROW_CALLED_BG   = '#fff8f8'
+const ROW_HOLD_BG     = '#fffcf0'
 
 interface BoothDashboardProps {
   booth: Booth
@@ -41,6 +44,8 @@ export default function BoothDashboard({ booth, tickets }: BoothDashboardProps) 
   const [snackbar, setSnackbar] = useState<{ message: string; severity: 'success' | 'error' } | null>(null)
   const [issuePending, startIssueTransition] = useTransition()
 
+  const activeTickets  = tickets.filter((t) => t.status === 'waiting' || t.status === 'called')
+  const onHoldTickets  = tickets.filter((t) => t.status === 'on_hold')
   const calledTickets  = tickets.filter((t) => t.status === 'called')
   const waitingTickets = tickets.filter((t) => t.status === 'waiting')
   const totalPeople    = [...calledTickets, ...waitingTickets].reduce((s, t) => s + (t.party_size ?? 0), 0)
@@ -49,6 +54,7 @@ export default function BoothDashboard({ booth, tickets }: BoothDashboardProps) 
     startIssueTransition(async () => {
       const res = await issueTicket(booth.id, partySize)
       if (res.type === 'issued') {
+        new Audio('/issue.mp3').play().catch(() => {})
         setSnackbar({ message: `${res.ticketNumber}番 を発券しました`, severity: 'success' })
         setPartySize(1)
       } else {
@@ -71,8 +77,11 @@ export default function BoothDashboard({ booth, tickets }: BoothDashboardProps) 
               現在の待ち組数
             </Typography>
             <Box display="flex" alignItems="baseline" gap={1}>
-              <Typography sx={{ fontSize: '3rem', fontWeight: 'bold', color: '#111', lineHeight: 1 }}>
+              <Typography sx={{ fontSize: '4rem', fontWeight: 'bold', color: '#111', lineHeight: 1 }}>
                 {waitingTickets.length + calledTickets.length}
+              </Typography>
+              <Typography sx={{ fontSize: '2rem', fontWeight: 'bold', color: '#111', lineHeight: 1 }}>
+                組
               </Typography>
               <Typography sx={{ fontSize: '1.2rem', color: 'text.secondary' }}>
                 （{totalPeople}人）
@@ -125,8 +134,8 @@ export default function BoothDashboard({ booth, tickets }: BoothDashboardProps) 
           {/* タブヘッダー */}
           <Box sx={{ display: 'flex', borderRadius: '4px 4px 0 0', overflow: 'hidden' }}>
             {[
-              { label: `順番待ち（${waitingTickets.length + calledTickets.length}組）`, idx: 0 },
-              { label: '保留', idx: 1 },
+              { label: `順番待ち（${activeTickets.length}組）`, idx: 0 },
+              { label: `保留（${onHoldTickets.length}組）`, idx: 1 },
             ].map(({ label, idx }) => {
               const active = activeTab === idx
               return (
@@ -165,20 +174,27 @@ export default function BoothDashboard({ booth, tickets }: BoothDashboardProps) 
           >
             {activeTab === 0 && (
               <>
-                {tickets.length === 0 && (
+                {activeTickets.length === 0 && (
                   <Box display="flex" alignItems="center" justifyContent="center" height={120}>
                     <Typography color="text.disabled">現在の待ちはありません</Typography>
                   </Box>
                 )}
-                {tickets.map((t) => (
+                {activeTickets.map((t) => (
                   <TicketRow key={t.id} ticket={t} boothId={booth.id} />
                 ))}
               </>
             )}
             {activeTab === 1 && (
-              <Box display="flex" alignItems="center" justifyContent="center" height={120}>
-                <Typography color="text.disabled">Coming Soon</Typography>
-              </Box>
+              <>
+                {onHoldTickets.length === 0 && (
+                  <Box display="flex" alignItems="center" justifyContent="center" height={120}>
+                    <Typography color="text.disabled">保留中の整理券はありません</Typography>
+                  </Box>
+                )}
+                {onHoldTickets.map((t) => (
+                  <TicketRow key={t.id} ticket={t} boothId={booth.id} />
+                ))}
+              </>
             )}
           </Box>
         </Box>
@@ -212,13 +228,7 @@ export default function BoothDashboard({ booth, tickets }: BoothDashboardProps) 
               <Typography sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>減らす</Typography>
               <IconButton
                 onClick={() => setPartySize((p) => Math.max(1, p - 1))}
-                sx={{
-                  bgcolor: BLUE,
-                  borderRadius: 1,
-                  width: 52, height: 52,
-                  color: '#fff',
-                  '&:hover': { bgcolor: '#133b6b' },
-                }}
+                sx={{ bgcolor: BLUE, borderRadius: 1, width: 52, height: 52, color: '#fff', '&:hover': { bgcolor: '#133b6b' } }}
               >
                 <RemoveIcon fontSize="large" />
               </IconButton>
@@ -226,14 +236,8 @@ export default function BoothDashboard({ booth, tickets }: BoothDashboardProps) 
 
             <Box
               sx={{
-                border: '2px solid #333',
-                borderRadius: 1,
-                minWidth: 68,
-                height: 68,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                bgcolor: '#fff',
+                border: '2px solid #333', borderRadius: 1, minWidth: 68, height: 68,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#fff',
               }}
             >
               <Typography sx={{ fontSize: '2.6rem', fontWeight: 'bold', color: '#111', lineHeight: 1 }}>
@@ -245,13 +249,7 @@ export default function BoothDashboard({ booth, tickets }: BoothDashboardProps) 
               <Typography sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>増やす</Typography>
               <IconButton
                 onClick={() => setPartySize((p) => p + 1)}
-                sx={{
-                  bgcolor: BLUE,
-                  borderRadius: 1,
-                  width: 52, height: 52,
-                  color: '#fff',
-                  '&:hover': { bgcolor: '#133b6b' },
-                }}
+                sx={{ bgcolor: BLUE, borderRadius: 1, width: 52, height: 52, color: '#fff', '&:hover': { bgcolor: '#133b6b' } }}
               >
                 <AddIcon fontSize="large" />
               </IconButton>
@@ -311,112 +309,226 @@ export default function BoothDashboard({ booth, tickets }: BoothDashboardProps) 
 // ── チケット1行分 ────────────────────────────────────
 function TicketRow({ ticket, boothId }: { ticket: Ticket; boothId: string }) {
   const [isPending, startTransition] = useTransition()
-  const isCalled = ticket.status === 'called'
+  const isCalled  = ticket.status === 'called'
+  const isWaiting = ticket.status === 'waiting'
+  const isOnHold  = ticket.status === 'on_hold'
+
+  const rowBg      = isCalled ? ROW_CALLED_BG : isOnHold ? ROW_HOLD_BG : '#fff'
+  const leftBorder = isCalled ? '4px solid #e53935' : isOnHold ? '4px solid #ef6c00' : '4px solid transparent'
+
+  const badgeBg    = isCalled ? '#fcebeb' : isOnHold ? '#faeeda' : '#e6f1fb'
+  const badgeColor = isCalled ? '#a32d2d' : isOnHold ? '#854f0b' : '#185fa5'
+  const badgeLabel = isCalled ? '呼出中' : isOnHold ? '保留' : '待ち'
+
+  const timeStr = new Date(ticket.created_at).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })
 
   return (
     <Box
       sx={{
         display: 'grid',
         gridTemplateColumns: 'auto 1fr auto',
-        alignItems: 'center',
-        gap: 1.5,
-        px: 2,
-        py: 1.5,
+        alignItems: 'stretch',
         borderBottom: '1px solid #e8e8e8',
-        bgcolor: isCalled ? ROW_CALLED_BG : '#fff',
-        borderLeft: isCalled ? '4px solid #e53935' : '4px solid transparent',
+        bgcolor: rowBg,
+        borderLeft: leftBorder,
         opacity: isPending ? 0.5 : 1,
         transition: 'opacity 0.2s',
+        minHeight: 96,
         '&:last-child': { borderBottom: 'none' },
       }}
     >
-      {/* ステータスバッジ */}
+      {/* ── 左：縦長ボタン（アイコン上・テキスト下） ── */}
       <Box
         sx={{
-          bgcolor: isCalled ? '#e53935' : '#546e7a',
-          color: '#fff',
-          fontWeight: 'bold',
-          fontSize: '0.78rem',
-          width: 48,
-          py: 0.5,
-          borderRadius: 0.75,
-          textAlign: 'center',
-          flexShrink: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          px: 1.5,
         }}
       >
-        {isCalled ? '呼出' : '待ち'}
-      </Box>
-
-      {/* 番号・人数・時刻 */}
-      <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1.5 }}>
-        <Typography sx={{ fontWeight: 'bold', fontSize: '2rem', color: '#111', lineHeight: 1 }}>
-          {ticket.ticket_number}
-        </Typography>
-        <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>
-          人数 {ticket.party_size}
-        </Typography>
-        <Typography sx={{ color: 'text.disabled', fontSize: '0.78rem' }}>
-          {new Date(ticket.created_at).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}
-        </Typography>
-      </Box>
-
-      {/* アクションボタン */}
-      {isCalled ? (
-        <Box display="flex" gap={0.75} alignItems="center">
+        {isCalled ? (
           <Button
-            size="small"
             variant="outlined"
             disabled={isPending}
             onClick={() => startTransition(() => returnToWaiting(ticket.id, boothId))}
             sx={{
-              color: '#666',
-              borderColor: '#bbb',
-              fontSize: '0.72rem',
-              py: 0.5,
-              px: 1,
-              minWidth: 0,
-              lineHeight: 1.3,
+              color: '#999',
+              borderColor: '#ddd',
+              my: 1,
+              width: 64,
+              height: 100,
+              flexDirection: 'column',
+              gap: 0.5,
+              fontSize: '0.85rem',
+              fontWeight: 'bold',
+              boxShadow: 'none',
               whiteSpace: 'nowrap',
-              '&:hover': { borderColor: '#555', bgcolor: 'rgba(0,0,0,0.04)' },
+              minWidth: 0,
+              '&:hover': { bgcolor: 'rgba(0,0,0,0.04)', borderColor: '#bbb', boxShadow: 'none' },
             }}
           >
-            呼出<br />取消
+            <UndoIcon sx={{ fontSize: 22 }} />
+            取消
           </Button>
+        ) : (
           <Button
-            size="small"
             variant="contained"
             disabled={isPending}
-            startIcon={<CheckIcon fontSize="small" />}
-            onClick={() => startTransition(() => completeTicket(ticket.id, boothId))}
+            onClick={() => startTransition(() => callSpecificTicket(ticket.id, boothId))}
             sx={{
-              bgcolor: '#1565c0',
-              fontWeight: 'bold',
+              bgcolor: '#e53935',
+              color: '#fff',
+              my: 1,
+              width: 64,
+              height: 100,
+              flexDirection: 'column',
+              gap: 0.5,
               fontSize: '0.85rem',
-              py: 0.75,
-              '&:hover': { bgcolor: '#0d47a1' },
+              fontWeight: 'bold',
+              boxShadow: 'none',
+              whiteSpace: 'nowrap',
+              minWidth: 0,
+              '&:hover': { bgcolor: '#c62828', boxShadow: 'none' },
             }}
           >
-            完了
+            <NotificationsActiveOutlinedIcon sx={{ fontSize: 22 }} />
+            呼出
           </Button>
+        )}
+      </Box>
+
+      {/* ── 中央：ステータス＋時刻 / 番号 / 人数 ── */}
+      <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', px: 2, py: 1.25, gap: 0.25 }}>
+
+        {/* 上行：バッジ（左）＋ 時刻（右） */}
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box
+            sx={{
+              bgcolor: badgeBg,
+              color: badgeColor,
+              fontSize: '0.7rem',
+              fontWeight: 'bold',
+              px: 1,
+              py: 0.25,
+              borderRadius: 99,
+              display: 'inline-block',
+            }}
+          >
+            {badgeLabel}
+          </Box>
+          <Typography sx={{ fontSize: '0.75rem', color: 'text.disabled' }}>
+            {timeStr}
+          </Typography>
         </Box>
-      ) : (
-        <Button
-          size="small"
-          variant="contained"
-          disabled={isPending}
-          startIcon={<PhoneInTalkIcon fontSize="small" />}
-          onClick={() => startTransition(() => callSpecificTicket(ticket.id, boothId))}
-          sx={{
-            bgcolor: '#1565c0',
-            fontWeight: 'bold',
-            py: 0.75,
-            px: 2,
-            '&:hover': { bgcolor: '#0d47a1' },
-          }}
-        >
-          呼出
-        </Button>
-      )}
+
+        {/* 整理券番号 */}
+        <Typography sx={{ fontWeight: 'bold', fontSize: '2.4rem', color: '#111', lineHeight: 1.1 }}>
+          {ticket.ticket_number}
+        </Typography>
+
+        {/* 人数 */}
+        <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>
+          人数 {ticket.party_size}
+        </Typography>
+      </Box>
+
+      {/* ── 右：ボタン群（縦 1:2 比率） ────────── */}
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          gap: 0.75,
+          px: 1.5,
+          py: 1.25,
+          borderLeft: '1px solid #e8e8e8',
+          width: 160,
+          flexShrink: 0,
+        }}
+      >
+        {/* 保留行：「待ちに戻す」＋「完了」 */}
+        {isOnHold && (
+          <>
+            <Button
+              variant="outlined"
+              disabled={isPending}
+              startIcon={<UndoIcon fontSize="small" />}
+              onClick={() => startTransition(() => returnToWaiting(ticket.id, boothId))}
+              sx={{
+                color: '#666',
+                borderColor: '#ccc',
+                fontSize: '0.85rem',
+                fontWeight: 'bold',
+                width: 128,
+                height: 40,
+                boxShadow: 'none',
+                whiteSpace: 'nowrap',
+                '&:hover': { bgcolor: 'rgba(0,0,0,0.04)', borderColor: '#999', boxShadow: 'none' },
+              }}
+            >
+              待ちに戻す
+            </Button>
+            <Button
+              variant="contained"
+              disabled={isPending}
+              onClick={() => startTransition(() => completeTicket(ticket.id, boothId))}
+              sx={{
+                bgcolor: GREEN_BTN,
+                color: '#fff',
+                fontSize: '1rem',
+                fontWeight: 'bold',
+                width: 128,
+                height: 60,
+                boxShadow: 'none',
+                '&:hover': { bgcolor: GREEN_BTN_HOVER, boxShadow: 'none' },
+              }}
+            >
+              完了
+            </Button>
+          </>
+        )}
+
+        {/* 待ち・呼出中：「保留」＋「完了」 */}
+        {!isOnHold && (
+          <>
+            <Button
+              variant="outlined"
+              disabled={isPending}
+              onClick={() => startTransition(() => holdTicket(ticket.id, boothId))}
+              sx={{
+                color: '#ef6c00',
+                borderColor: '#ef6c00',
+                fontSize: '0.85rem',
+                fontWeight: 'bold',
+                width: 128,
+                height: 40,
+                boxShadow: 'none',
+                whiteSpace: 'nowrap',
+                '&:hover': { bgcolor: '#fff8e1', borderColor: '#e65100', boxShadow: 'none' },
+              }}
+            >
+              保留
+            </Button>
+            <Button
+              variant="contained"
+              disabled={isPending}
+              onClick={() => startTransition(() => completeTicket(ticket.id, boothId))}
+              sx={{
+                bgcolor: GREEN_BTN,
+                color: '#fff',
+                fontSize: '1rem',
+                fontWeight: 'bold',
+                width: 128,
+                height: 60,
+                boxShadow: 'none',
+                '&:hover': { bgcolor: GREEN_BTN_HOVER, boxShadow: 'none' },
+              }}
+            >
+              完了
+            </Button>
+          </>
+        )}
+      </Box>
     </Box>
   )
 }

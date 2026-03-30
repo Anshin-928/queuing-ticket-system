@@ -18,7 +18,7 @@ export default async function BoothDashboardPage({ params }: PageProps) {
       .from('tickets')
       .select('*')
       .eq('booth_id', booth_id)
-      .in('status', ['called', 'waiting'])
+      .in('status', ['called', 'waiting', 'on_hold'])
       .order('ticket_number', { ascending: true }),
   ])
 

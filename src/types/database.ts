@@ -2,7 +2,7 @@
 
 export type BoothStatus = 'empty' | 'crowded'
 
-export type TicketStatus = 'unissued' | 'waiting' | 'called' | 'done' | 'direct'
+export type TicketStatus = 'unissued' | 'waiting' | 'called' | 'done' | 'direct' | 'on_hold'
 
 export interface Booth {
   id: string
