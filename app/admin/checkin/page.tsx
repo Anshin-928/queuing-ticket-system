@@ -1,6 +1,5 @@
 // app/admin/checkin/page.tsx
 
-import { useState } from 'react';
 import { Box, Typography, Chip } from '@mui/material'
 import TabletMacOutlinedIcon from '@mui/icons-material/TabletMacOutlined'
 
