@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import ThemeRegistry from './components/ThemeRegistry'
 
 export const metadata: Metadata = {
-  title: 'Queuing Ticket System',
+  title: 'いばらき ✕ 立命館DAY',
   description: 'リアルタイム順番待ち＆整理券発券システム',
 }
 

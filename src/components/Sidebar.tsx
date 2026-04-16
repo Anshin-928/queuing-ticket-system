@@ -17,10 +17,10 @@ export const openDrawerWidth   = 300
 // ── カラーパレット ─────────────────────────────────────
 const SIDEBAR_BG         = '#274a79'
 const SIDEBAR_HEADER_BG  = '#3363a3'
-const SIDEBAR_TEXT       = 'rgba(255, 255, 255, 0.90)'
+const SIDEBAR_TEXT       = 'rgba(255, 255, 255)'
 const SIDEBAR_TEXT_MUTED = 'rgba(255, 255, 255, 0.70)'
 const SIDEBAR_ACTIVE_BG  = '#3b72bb'
-const SIDEBAR_HOVER_BG   = 'rgba(255, 255, 255, 0.08)'
+const SIDEBAR_HOVER_BG   = 'rgba(255, 255, 255, 0.15)'
 
 interface SidebarProps {
   isSidebarOpen: boolean
@@ -151,7 +151,7 @@ export default function Sidebar({ isSidebarOpen, boothId, boothName, onToggle }:
               sx={{
                 '& .MuiTypography-root': {
                   fontSize: '15px',
-                  fontWeight: pathname === '/admin' ? 700 : 400,
+                  fontWeight: pathname === '/admin' ? 700 : 600,
                   color: pathname === '/admin' ? '#fff' : SIDEBAR_TEXT,
                 },
               }}
@@ -222,7 +222,7 @@ export default function Sidebar({ isSidebarOpen, boothId, boothName, onToggle }:
                       sx={{
                         '& .MuiTypography-root': {
                           fontSize: '15px',
-                          fontWeight: isSelected ? 700 : 400,
+                          fontWeight: isSelected ? 700 : 600,
                           color: isSelected ? '#fff' : SIDEBAR_TEXT,
                         },
                       }}

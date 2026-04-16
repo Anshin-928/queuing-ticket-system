@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
 export async function updateBoothName(
@@ -38,4 +39,14 @@ export async function resetEvent(
 
   revalidatePath(`/admin/${boothId}/dashboard`)
   return { ok: true, deletedCount: count ?? 0 }
+}
+
+export async function deleteBoothById(boothId: string): Promise<void> {
+  // 関連チケットを先に削除
+  await supabase.from('tickets').delete().eq('booth_id', boothId)
+
+  const { error } = await supabase.from('booths').delete().eq('id', boothId)
+  if (error) throw new Error('ブースの削除に失敗しました')
+
+  redirect('/admin')
 }

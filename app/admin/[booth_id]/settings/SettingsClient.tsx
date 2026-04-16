@@ -16,7 +16,7 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import DeleteForeverOutlinedIcon from '@mui/icons-material/DeleteForeverOutlined'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
-import { updateBoothName, resetEvent } from './actions'
+import { updateBoothName, resetEvent, deleteBoothById } from './actions'
 import type { Booth } from '@/types/database'
 
 interface Props {
@@ -32,6 +32,21 @@ export default function SettingsClient({ booth }: Props) {
   const [resetInput, setResetInput] = useState('')
   const [resetResult, setResetResult] = useState<{ ok: boolean; text: string } | null>(null)
   const [resetPending, startResetTransition] = useTransition()
+
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [deleteInput, setDeleteInput] = useState('')
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [deletePending, startDeleteTransition] = useTransition()
+
+  const handleDelete = () => {
+    startDeleteTransition(async () => {
+      try {
+        await deleteBoothById(booth.id)
+      } catch {
+        setDeleteError('ブースの削除に失敗しました')
+      }
+    })
+  }
 
   const handleNameSave = () => {
     setNameMsg(null)
@@ -129,7 +144,83 @@ export default function SettingsClient({ booth }: Props) {
         </Button>
       </Paper>
 
-      {/* 確認ダイアログ */}
+      {/* ── ブース削除 ── */}
+      <Paper
+        elevation={0}
+        sx={{ border: '1.5px solid #b71c1c', borderRadius: 2, p: 3, bgcolor: '#fff5f5' }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+          <WarningAmberIcon sx={{ color: '#b71c1c' }} />
+          <Typography fontWeight="bold" fontSize="1rem" color="#b71c1c">ブースの削除</Typography>
+        </Box>
+        <Typography sx={{ fontSize: '0.9rem', color: 'text.secondary', mb: 2.5, lineHeight: 1.7 }}>
+          このブースと<strong>全チケットを完全に削除</strong>します。<br />
+          <strong>この操作は取り消せません。</strong>
+        </Typography>
+        <Button
+          variant="outlined"
+          color="error"
+          startIcon={<DeleteForeverOutlinedIcon />}
+          onClick={() => { setDeleteInput(''); setDeleteError(null); setDeleteConfirmOpen(true) }}
+          sx={{ fontWeight: 'bold' }}
+        >
+          このブースを削除する
+        </Button>
+      </Paper>
+
+      {/* ブース削除確認ダイアログ */}
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={() => !deletePending && setDeleteConfirmOpen(false)}
+        PaperProps={{ sx: { borderRadius: 3, px: 1, py: 0.5, minWidth: 340 } }}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pb: 1 }}>
+          <WarningAmberIcon sx={{ color: '#b71c1c', fontSize: 28 }} />
+          <Typography variant="h6" component="span" fontWeight="bold">ブースを削除しますか？</Typography>
+        </DialogTitle>
+        <DialogContent sx={{ pt: 0, pb: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Typography sx={{ color: 'text.secondary', fontSize: '0.95rem', lineHeight: 1.7 }}>
+            <strong>{booth.name}</strong> と全チケットが削除されます。この操作は取り消せません。
+          </Typography>
+          <Box>
+            <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary', mb: 0.75 }}>
+              確認のため <strong>「{booth.name}」</strong> と入力してください
+            </Typography>
+            <TextField
+              value={deleteInput}
+              onChange={(e) => setDeleteInput(e.target.value)}
+              size="small"
+              fullWidth
+              placeholder={booth.name}
+              autoComplete="off"
+            />
+          </Box>
+          {deleteError && <Alert severity="error">{deleteError}</Alert>}
+        </DialogContent>
+        <DialogActions sx={{ px: 2.5, pb: 2.5, gap: 1 }}>
+          <Button
+            variant="outlined"
+            size="large"
+            disabled={deletePending}
+            onClick={() => setDeleteConfirmOpen(false)}
+            sx={{ flex: 1, borderColor: '#ccc', color: '#555' }}
+          >
+            キャンセル
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            size="large"
+            disabled={deleteInput !== booth.name || deletePending}
+            onClick={handleDelete}
+            sx={{ flex: 1, fontWeight: 'bold', boxShadow: 'none', '&:hover': { boxShadow: 'none' } }}
+          >
+            {deletePending ? <CircularProgress size={18} sx={{ color: '#fff' }} /> : '削除する'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* 初期化確認ダイアログ */}
       <Dialog
         open={resetConfirmOpen}
         onClose={() => !resetPending && setResetConfirmOpen(false)}
