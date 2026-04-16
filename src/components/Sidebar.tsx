@@ -7,10 +7,8 @@ import {
   Divider, Typography, Box, IconButton,
 } from '@mui/material'
 import { usePathname, useRouter } from 'next/navigation'
-import Link from 'next/link'
-import StorefrontOutlinedIcon   from '@mui/icons-material/StorefrontOutlined'
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded'
-import ArrowBackOutlinedIcon from '@mui/icons-material/ArrowBackOutlined'
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined'
 import { menuGroups, getBoothPath } from '@/config/adminMenu'
 
 export const closedDrawerWidth = 0
@@ -116,10 +114,56 @@ export default function Sidebar({ isSidebarOpen, boothId, boothName, onToggle }:
           },
         }}
       >
+        {/* ホーム */}
+        <ListItem disablePadding sx={{ display: 'block' }}>
+          <ListItemButton
+            onClick={() => router.push('/admin')}
+            selected={pathname === '/admin'}
+            sx={{
+              minHeight: 44,
+              ml: 0,
+              mr: 2,
+              px: 0,
+              borderRadius: '0 22px 22px 0',
+              color: pathname === '/admin' ? '#fff' : SIDEBAR_TEXT,
+              '&:hover': {
+                backgroundColor: pathname === '/admin' ? SIDEBAR_ACTIVE_BG : SIDEBAR_HOVER_BG,
+              },
+              '&.Mui-selected': {
+                backgroundColor: SIDEBAR_ACTIVE_BG,
+                '&:hover': { backgroundColor: SIDEBAR_ACTIVE_BG },
+              },
+            }}
+          >
+            <ListItemIcon
+              sx={{
+                minWidth: 0,
+                ml: '20px',
+                mr: '14px',
+                justifyContent: 'center',
+                color: pathname === '/admin' ? '#fff' : SIDEBAR_TEXT_MUTED,
+              }}
+            >
+              <HomeOutlinedIcon sx={{ fontSize: '24px' }} />
+            </ListItemIcon>
+            <ListItemText
+              primary="ホーム"
+              sx={{
+                '& .MuiTypography-root': {
+                  fontSize: '15px',
+                  fontWeight: pathname === '/admin' ? 700 : 400,
+                  color: pathname === '/admin' ? '#fff' : SIDEBAR_TEXT,
+                },
+              }}
+            />
+          </ListItemButton>
+        </ListItem>
+        <Divider sx={{ my: 1, borderColor: 'rgba(255,255,255,0.12)' }} />
+
         {menuGroups.map((group, groupIndex) => (
           <React.Fragment key={group.label}>
             {groupIndex > 0 && (
-              <Divider sx={{ my: 1, mx: 3, borderColor: 'rgba(255,255,255,0.12)' }} />
+              <Divider sx={{ my: 1, borderColor: 'rgba(255,255,255,0.12)' }} />
             )}
 
             <Box sx={{ px: 3, pt: groupIndex > 0 ? 0.5 : 0, pb: 0.5 }}>
@@ -191,33 +235,6 @@ export default function Sidebar({ isSidebarOpen, boothId, boothName, onToggle }:
         ))}
       </List>
 
-      {/* ── フッター：ブース選択に戻る ──────────────── */}
-      <Box sx={{ flexShrink: 0, pb: 2 }}>
-        <Divider sx={{ mx: 3, mb: 1, borderColor: 'rgba(255,255,255,0.12)' }} />
-        <ListItem disablePadding>
-          <ListItemButton
-            component={Link}
-            href="/admin"
-            sx={{
-              minHeight: 44,
-              ml: 0,
-              mr: 2,
-              px: 0,
-              borderRadius: '0 22px 22px 0',
-              color: SIDEBAR_TEXT_MUTED,
-              '&:hover': { backgroundColor: SIDEBAR_HOVER_BG, color: SIDEBAR_TEXT },
-            }}
-          >
-            <ListItemIcon sx={{ minWidth: 0, ml: '20px', mr: '14px', justifyContent: 'center', color: 'inherit' }}>
-              <ArrowBackOutlinedIcon sx={{ fontSize: '20px' }} />
-            </ListItemIcon>
-            <ListItemText
-              primary="ブース選択に戻る"
-              sx={{ '& .MuiTypography-root': { fontSize: '14px', color: 'inherit' } }}
-            />
-          </ListItemButton>
-        </ListItem>
-      </Box>
     </Drawer>
   )
 }
