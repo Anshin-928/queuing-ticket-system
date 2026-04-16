@@ -5,6 +5,9 @@ import ThemeRegistry from './components/ThemeRegistry'
 export const metadata: Metadata = {
   title: 'Queuing Ticket System',
   description: 'リアルタイム順番待ち＆整理券発券システム',
+  icons: {
+    icon: '/favicon.jpg',
+  },
 }
 
 export default function RootLayout({
